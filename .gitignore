@@ -1,0 +1,13 @@
+# plots
+*.pdf
+*.png
+*.gif
+*.mp4
+
+#stored objects
+*.pkl
+*.pickle
+
+#vscode
+.vscode
+__pycache__
