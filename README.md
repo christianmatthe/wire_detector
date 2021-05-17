@@ -7,7 +7,7 @@ Install Instructions:
 
 • git clone https://github.com/christianmatthe/wire_detector
 
-• navigate to the wire detector folder containing setup.py
+• navigate to the wire_detector folder containing setup.py
 
 • pip install .
 
