@@ -8,8 +8,10 @@ import sys
 #import scipy as sp
 from scipy.interpolate import interp1d
 
-top_dir = os.path.dirname(os.path.abspath(__file__)) + "\\"
-sys.path.append(top_dir + "..\\")
+top_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep
+sys.path.append(top_dir + ".." + os.sep)
+#sys.path.append(top_dir + ".." + os.sep + ".." + os.sep)
+#print(top_dir + ".." + os.sep + ".." + os.sep)
 from Wire_detector import Wire
 from time import time
 

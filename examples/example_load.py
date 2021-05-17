@@ -1,11 +1,12 @@
 # Add location of Wire_detector.py to path
 import sys
-sys.path.append("..")
+import os
 
+# top_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep
+# sys.path.append(top_dir + ".." + os.sep)
 # import Wire class from Wire_detector.py 
 from Wire_detector import Wire
 
-import os
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
