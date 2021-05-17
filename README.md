@@ -8,8 +8,8 @@ Install Instructions:
 
 • git clone https://github.com/christianmatthe/wire_detector
 
-• navigate to the wire_detector folder containing setup.py
+• use "cd wire_detector" to navigate to the wire_detector folder containing setup.py
 
-• pip install .
+• use "pip install ." to install wire detector as a local package
 
 You can now import Wire_detector or just import the Wire Class via "from Wire_detector import Wire" from anywhere on your system.
