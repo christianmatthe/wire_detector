@@ -2,11 +2,11 @@
 
 Simulation of a wire detector for atomic hydrogen
 
-Install Instructions:
+Note the Wire_detector package is onyl locally installable. 
 
-• Note the Wire_detector package is onyl locally installable. 
+Install Instructions: Type the following into a console
 
-• git clone https://github.com/christianmatthe/wire_detector
+• "git clone https://github.com/christianmatthe/wire_detector" to copy this repository
 
 • use "cd wire_detector" to navigate to the wire_detector folder containing setup.py
 
