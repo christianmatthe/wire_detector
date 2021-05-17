@@ -18,7 +18,7 @@ class Wire():
     l_wire : `float`
         Length of the wire in meters
     k_heat_conductivity : `float`
-        Heat connductivity of the wire matertial in (W/(m*K))
+        Heat conductivity of the wire matertial in (W/(m*K))
     a_temperature_coefficient : `float`
         Temperature coefficient of resistance
     rho_specific_resistance : `float`
@@ -44,7 +44,7 @@ class Wire():
         offset of the beam center for the wire center along the length of the 
         wire (meters)
     c_specific_heat : `float`
-        
+
     
 
     
