@@ -9,6 +9,45 @@ class Wire():
     """
     "The Wire object holds information about the state of the wire"
 
+    Parameters
+    ----------
+    n_wire_elements :  `int`
+        Number of elements in the wire
+    d_wire : `float`
+        Diameter of the wire in meters
+    l_wire : `float`
+        Length of the wire in meters
+    k_heat_conductivity : `float`
+        Heat connductivity of the wire matertial in (W/(m*K))
+    a_temperature_coefficient : `float`
+        Temperature coefficient of resistance
+    rho_specific_resistance : `float`
+        specific resitance fo wire material in (Ohm m)
+    i_current : `float`
+        current passed through the wire in (A)
+    T_background : `float`
+        Temperature of "background material" i.e. the holding structure 
+        and vacuum chamber
+    emissivity : `float`
+        emissivity of the wire
+    E_recombination : `float`
+        Energy released per recombinning H_2 molecule in (Joules)
+    phi_beam : `float`
+        Total flux in the atomic beam in (atoms/s)
+    l_beam : `float`
+        Length of the wire that is illuminated by the beam. equivalent to beam
+        width for a centered beam. (meters)
+    sigma_beam : `float`
+        standart deviation of gaussian in case beam shape is "Gaussian" 
+        (meters)
+    x_offset_beam : `float`
+        offset of the beam center for the wire center along the length of the 
+        wire (meters)
+    c_specific_heat : `float`
+        
+    
+
+    
     """
 
     def __init__(self,
@@ -17,7 +56,7 @@ class Wire():
                  l_wire = 5.45 * 10**-2,
                  k_heat_conductivity = 174,  # Pure Tungsten
                  a_temperature_coefficient = 4.7 * 10**-3,
-                 rho_specific_resistance = 0.092 * 10**-6,
+                 rho_specific_resistance = 0.052 * 10**-6,
                  i_current = 1.0 * 10**-3,
                  T_background = 293.15,
                  emissivity = 0.2,
@@ -38,7 +77,10 @@ class Wire():
                  pressure = 0,
                  A_cracker = np.pi * (0.5 * 10**-3)**2,  # 1mm diameter disk
                  dist_cracker_wire = 100 * 10**-3,
-                 bodge = False
+                 bodge = False,
+                 p_laser = 0,
+                 m_molecular_gas = 2 * 1.674 * 10**-27 
+                 # 2 * self.mass_hydrogen
                  ):
 
         self.n_wire_elements = n_wire_elements
@@ -68,6 +110,8 @@ class Wire():
         self.A_cracker = A_cracker
         self.dist_cracker_wire = dist_cracker_wire
         self.bodge = bodge
+        self.p_laser = p_laser
+        self.m_molecular_gas = m_molecular_gas
 
         #Constants
         self.T_0 = 293.15
@@ -168,7 +212,28 @@ class Wire():
             raise Exception("Unrecognized beam shape")
         return f
 
-    #TODO:
+    def f_laser(self, i):
+        if self.beam_shape == "Flat":
+            # flat circular profile
+            x_pos = ((i + 0.5) * self.l_segment - (self.l_wire / 2))
+            if ((-self.l_beam / 2) + self.x_offset_beam < x_pos 
+                and x_pos < (self.l_beam / 2) + self.x_offset_beam): 
+                f = (( self.emissivity * self.p_laser * self.d_wire) 
+                 /(np.pi * (self.l_beam/2)**2))
+            else:
+                f = 0
+        elif self.beam_shape == "Gaussian":
+            # Gaussian Profile
+            x_pos = ((i + 0.5) * self.l_segment - (self.l_wire / 2))
+            y_pos = 0
+            f = (( self.emissivity * self.p_laser * self.d_wire)
+                 * (1/(2 * np.pi * self.sigma_beam ** 2)) 
+                 * np.exp((-1/2) * ((x_pos - self.x_offset_beam)
+                 / self.sigma_beam) ** 2 + ((y_pos)/self.sigma_beam)) ** 2) 
+        else:
+            raise Exception("Unrecognized beam shape")
+        return f
+
     def f_bb(self, i):
         # Blackbody radiation from cracker. diameter 1mm stefan boltzmann 
         # times wire area and emissivity as absorption coefficient
@@ -200,11 +265,11 @@ class Wire():
         f = f_atoms + f_molecules
         return f
     
-    #TODO apply this
     def f_background_gas(self, i):
         # (average) mass of background Gas. Assumes background gas is primarily 
         # due to beam gas and all components have the same pumping speeds
-        m = 2 * self.mass_hydrogen
+        #m = 2 * self.mass_hydrogen
+        m = self.m_molecular_gas
         # m = (self.mass_hydrogen * self.crack_eff 
         #     + 2 * self.mass_hydrogen * (1 - self.crack_eff))
         # calculate power density
@@ -263,10 +328,12 @@ class Wire():
     def temperature_change(self, i, time_step):
         delta_T = (((self.f_el(i) - self.f_rad(i) - self.f_conduction(i)
                      + self.f_beam(i) + self.f_beam_gas(i) + self.f_bb(i)
-                     - self.f_background_gas(i)) 
+                     - self.f_background_gas(i) + self.f_laser(i)
+                     ) 
                      * self.l_segment * time_step) 
                      / (self.density * self.A_cross_section * self.l_segment 
                      * self.c_specific_heat))
+        # deprecated             
         if self.bodge == True:
             if (i < (25+1) or i >self.n_wire_elements - 1 - (25+1)):
                 delta_T = (((0*self.f_el(i) - self.f_rad(i) 
@@ -344,6 +411,12 @@ class Wire():
                    * self.i_current)
         return U
 
+    def integrate_f(self, f_func):
+        lst = [f_func(j) for j in range(self.n_wire_elements)]
+        arr = np.array(lst)
+        # Calculate total power along wire
+        power = np.sum(arr * self.l_segment)
+        return power
 
 
     def plot_signal(self, filename="plots/signal_plot"):
@@ -443,6 +516,8 @@ class Wire():
         f_bb_arr = [self.f_bb(j) for j in range(self.n_wire_elements)]
         f_background_gas_arr = [self.f_background_gas(j)
                                 for j in range(self.n_wire_elements)]
+        f_laser_arr = [self.f_laser(j)
+                                for j in range(self.n_wire_elements)]
 
         f_conduction_bodge_arr = [self.f_conduction_bodge(j) 
                         for j in range(self.n_wire_elements)]
@@ -463,17 +538,19 @@ class Wire():
                 ax1.plot(x_lst, f_conduction_bodge_arr, "--"
                         , label=r"$F_{\mathrm{cond. piecewise}}$")
             else:
-                ax1.plot(x_lst, f_conduction_arr, "-",
+                ax1.plot(x_lst, f_conduction_arr, "--",
                          label=r"$-F_{conduction}$")
         except:
             #bodge_end
-            ax1.plot(x_lst, f_conduction_arr, "-", label=r"$-F_{conduction}$")
-        ax1.plot(x_lst, f_rad_arr, "-", label=r"$-F_{rad}$")
+            ax1.plot(x_lst, f_conduction_arr, "--", label=r"$-F_{conduction}$")
+        ax1.plot(x_lst, f_rad_arr, "--", label=r"$-F_{rad}$")
         ax1.plot(x_lst, f_beam_arr, "-", label=r"$F_{beam}$")
         ax1.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
         ax1.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, cracker}$")
         ax1.plot(x_lst, f_background_gas_arr, "--"
                  , label=r"$-F_{backgr. \, gas}$")
+        ax1.plot(x_lst, f_laser_arr, "-"
+                 , label=r"$F_{laser}$")
 
         ax1.set_ylabel("Heat Flow [W/m]", fontsize = 16)
         ax1.set_xlabel(r"Wire positon [mm]", fontsize = 16)
@@ -485,10 +562,10 @@ class Wire():
         if True:
             h, l = ax1.get_legend_handles_labels()
             sources = [0,3,
-                        #4,5
+                        4,5,7
                         ]
             sinks = [1,2
-                    #,6
+                     ,6
                      ]
             #TOP legend
             # l1 = ax1.legend([h[i] for i in sources], [l[i] for i in sources],
@@ -522,11 +599,11 @@ class Wire():
                ncol = 1
                )
             plt.gca().add_artist(l1)
-            l2 = ax1.legend([h[i] for i in sinks], [l[i] for i in sinks],
+            ax1.legend([h[i] for i in sinks], [l[i] for i in sinks],
                #shadow = True,
                #framealpha = 0.5,
                loc = "upper left",
-               bbox_to_anchor=(1, 0.70),
+               bbox_to_anchor=(1, 0.60),
                fontsize = 14,
                title = "Heat Sinks:",
                title_fontsize = 14,
