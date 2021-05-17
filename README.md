@@ -11,4 +11,4 @@ Install Instructions:
 
 • pip install .
 
-You can now import Wire_detector or just import the Wire Class via "from Wire_detector import Wire".
+You can now import Wire_detector or just import the Wire Class via "from Wire_detector import Wire" from anywhere on your system.
