@@ -3,6 +3,7 @@
 Simulation of a wire detector for atomic hydrogen
 
 Install Instructions:
+
 • Note the Wire_detector package is onyl locally installable
 
 • git clone https://github.com/christianmatthe/wire_detector
