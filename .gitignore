@@ -7,6 +7,8 @@
 #stored objects
 *.pkl
 *.pickle
+*.zip
+*.7z
 
 #vscode
 .vscode
