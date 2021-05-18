@@ -31,7 +31,7 @@ class Wire():
     emissivity : `float`
         emissivity of the wire
     E_recombination : `float`
-        Energy released per recombinning H_2 molecule in (Joules)
+        Energy released per recombining H_2 molecule in (Joules)
     phi_beam : `float`
         Total flux in the atomic beam in (atoms/s)
     l_beam : `float`
@@ -44,7 +44,28 @@ class Wire():
         offset of the beam center for the wire center along the length of the 
         wire (meters)
     c_specific_heat : `float`
-
+        specific heat capacity of wire material. (J/(kg K))
+    density : `float`
+        density of wire material. (kg/m**3)
+    beam_shape : `str`
+        Keyword selection of implemented beam shapes. Currently available are 
+        "Gaussian" and "Flat"
+    T_base : `array of floats`
+        Temperature distribution along wire used at the start of the simulation
+        If "None" a uniform distribution at T_background is used. (K)
+    taylor_f_rad: `Bool`
+        If True f_rad will be calculated with a first order approximation
+    crack_eff : `Float`
+        Cracking efficiency of Hydrogen cracker. determines percentage of H
+        atoms vs H_2 mmolecules in the beam.
+    T_cracker: `Float`
+        Temperature of the cracker filament. Used to determine blackbody
+        radiation from the filament that heats the wire if in line of sight. 
+        (K)
+    T_atoms : `Float`
+        Temperature of the atoms comming out of the cracker. (K)
+    
+    
     
 
     
