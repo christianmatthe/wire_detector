@@ -33,7 +33,7 @@ class Wire():
     E_recombination : `float`
         Energy released per recombining H_2 molecule in (Joules)
     phi_beam : `float`
-        Total flux in the atomic beam in (atoms/s)
+        Total atom flux in the beam in (atoms/s)
     l_beam : `float`
         Length of the wire that is illuminated by the beam. equivalent to beam
         width for a centered beam. (meters)
@@ -64,10 +64,20 @@ class Wire():
         (K)
     T_atoms : `Float`
         Temperature of the atoms comming out of the cracker. (K)
-    
-    
-    
-
+    T_molecules : `Float`
+        Temperature of the atoms comming out of the cracker. (K)
+    pressure : `Float`
+        Pressure of  Gas surrounding the wire (Pa)
+    A_cracker : `Float`
+        Area of the cracker opening visible to the wire (m^2)
+    dist_cracker_wire: `Float`
+        Distance between the cracker opening and the wire (m)
+    bodge : `Bool`
+        Activates functions I  do not recommend using. Leave on False
+    p_laser: `Float`
+        Total power in laser beam (Watts)
+    m_molecular_gas : `Float`
+        mass per molecule of gas surrounding the  wire (kg)
     
     """
 

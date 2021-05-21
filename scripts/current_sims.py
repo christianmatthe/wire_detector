@@ -8,15 +8,30 @@ from Wire_detector import Wire
 from time import time
 
 start_time = time()
-top_dir = "current_sims_2/0.03mbar_air/"
+top_dir = "current_sims_2/0.02mbar_air/"
 os.makedirs(top_dir, exist_ok=True)
 results_dir = top_dir + "results/"
 plot_dir = top_dir + "plots/"
 os.makedirs(results_dir, exist_ok=True)
 os.makedirs(plot_dir, exist_ok=True)
 d = 5
-i_current_list = [0.5,0.7,1,1.2,1.5,2,3,4,5,6,7,8,9,10]
-x_offset_list = np.linspace(0,2.5,num = 26)
+i_current_list = [#0.1,
+                  #0.5,0.7,1,1.2,1.5,
+                  #1.7, 1.9,
+                  # 2,
+                  2.0,
+                  2.2, 2.4, 2.6, 2.8,
+                  # 3,
+                  3.0,
+                  3.2, 3.4, 3.6, 3.8,
+                  # 4,
+                  4.0,
+                  4.2, 4.4, 4.6, 4.8,
+                  # 5,
+                  5.2, 5.4, 5.6, 5.8,
+                  # 6,7,8,9,10
+                  6.0, 7.0, 8.0, 9.0, 10.0
+                  ]
 exp_list = [17]
 #exp_list = np.linspace(14,18,num = 5)  # later normalized to per cm**2 
 l_beam_list = [1.6]  # in cm
@@ -43,7 +58,7 @@ for l_wire in l_wire_list:
             i_current = (d/5)**2 * i_current * 10**-3, d_wire = d * 10**-6,
             emissivity = 0.3, l_wire=l_wire*10**-2, 
             rho_specific_resistance=0.054 * 10**-6,
-            pressure=0.03*10**-3*10**5, m_molecular_gas= 29 * 1.674 * 10**-27,
+            pressure=0.02*10**-3*10**5, m_molecular_gas= 29 * 1.674 * 10**-27,
             T_cracker = 300,
             ###
             phi_beam=0, T_base=None
