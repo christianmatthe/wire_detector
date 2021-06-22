@@ -24,7 +24,7 @@ mpl.rc('font', **font)
 top_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep
 # plot_dir = top_dir + "analysis_3
 emissivity = 0.25
-plot_dir = top_dir + "analysis_3_em_{}/".format(emissivity)
+plot_dir = top_dir + "analysis_3_em_{}_kint/".format(emissivity)
 os.makedirs(plot_dir, exist_ok=True)
 heat_flow_dir = top_dir + "heat_flow/"
 
@@ -72,7 +72,7 @@ for n_lw, l_wire in enumerate(l_wire_list):
         #TODO Include enumerates, output plots for every i_current
         wire = Wire()
         #wire = wire.load(top_dir + "0.02mbar_air\\" + "results\\" + run_name)
-        wire = wire.load(top_dir + "0.02mbar_air_em_{}\\".format(emissivity) 
+        wire = wire.load(top_dir + "0.0005mbar_air_em_{}_kint\\".format(emissivity) 
                          + "results\\" + run_name)
         #l_beam = wire.l_beam
 
@@ -103,9 +103,10 @@ if True:
     power_arr_full = np.zeros((len(func_list), len(i_current_list)))
     resistance_arr = np.zeros( len(i_current_list))
     T_arr = np.zeros(len(i_current_list))
+    T_max_arr = np.zeros(len(i_current_list))
     for n_i, i_current in enumerate(i_current_list):
         run_name = "lw_{}_i_{}".format(2.7,i_current)
-        wire = wire.load(top_dir + "0.02mbar_air_em_{}\\".format(emissivity) 
+        wire = wire.load(top_dir + "0.0005mbar_air_em_{}_kint\\".format(emissivity) 
                          + "results\\" + run_name)
         for n_func,func in enumerate(func_list):
             power = wire.integrate_f(getattr(wire, func))
@@ -113,7 +114,9 @@ if True:
             resistance = wire.resistance_total()
             resistance_arr[n_i] = resistance
             T_avg = np.average(wire.T_distribution)
-            T_arr[n_i] = T_avg 
+            T_arr[n_i] = T_avg
+            T_max_arr[n_i] = np.amax(wire.T_distribution)
+             
     # Generate interpolation objects
     f_cond_interpolated = interp1d(T_arr, power_arr_full[1], kind = "cubic"
                                    ,fill_value="extrapolate")
@@ -510,6 +513,21 @@ def fit_mismatch(data_frame, out_dir,
 
     ax1.set_ylabel(r"mismatch residuals [mW]")
     ax1.set_xlabel(r"T [°C]")
+
+    # 2nd x-axis ticks for max T
+    ax2 = ax1.twiny()
+    new_tick_locations = np.array([0.125,0.25,0.375,0.5,0.625,0.75,0.875])
+
+    def tick_function(X):
+        f = interp1d(T_arr, T_max_arr, kind='cubic')
+
+        return ["%.3f" % z for z in V]
+
+    ax2.set_xlim(ax1.get_xlim())
+    ax2.set_xticks(new_tick_locations)
+    ax2.set_xticklabels(tick_function(new_tick_locations))
+    ax2.set_xlabel(r"Modified x-axis: $1/(1+X)$")
+
     plt.tight_layout()
 
     plt.grid(True)
@@ -894,8 +912,8 @@ plot_compare_to_sim(df, out_dir,
 fit_mismatch(df, out_dir)
 
 df = data_frame[138:212]
-# df_pre = data_frame[6:7]
-# df = df_pre.append(df, ignore_index=True)
+#df_pre = data_frame[6:7]
+#df = df_pre.append(df, ignore_index=True)
 #print(df)
 test_run_name = "wire_3_post_bakeout_1150mV"
 out_dir = plot_dir + test_run_name + os.sep

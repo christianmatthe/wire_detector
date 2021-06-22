@@ -23,7 +23,7 @@ mpl.rc('font', **font)
 
 top_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep
 # plot_dir = top_dir + "analysis_3
-emissivity = 0.25
+emissivity = 0.67
 plot_dir = top_dir + "analysis_3_em_{}/".format(emissivity)
 os.makedirs(plot_dir, exist_ok=True)
 heat_flow_dir = top_dir + "heat_flow/"
@@ -72,7 +72,7 @@ for n_lw, l_wire in enumerate(l_wire_list):
         #TODO Include enumerates, output plots for every i_current
         wire = Wire()
         #wire = wire.load(top_dir + "0.02mbar_air\\" + "results\\" + run_name)
-        wire = wire.load(top_dir + "0.02mbar_air_em_{}\\".format(emissivity) 
+        wire = wire.load(top_dir + "0.0005mbar_air_em_{}\\".format(emissivity) 
                          + "results\\" + run_name)
         #l_beam = wire.l_beam
 
@@ -105,7 +105,7 @@ if True:
     T_arr = np.zeros(len(i_current_list))
     for n_i, i_current in enumerate(i_current_list):
         run_name = "lw_{}_i_{}".format(2.7,i_current)
-        wire = wire.load(top_dir + "0.02mbar_air_em_{}\\".format(emissivity) 
+        wire = wire.load(top_dir + "0.0005mbar_air_em_{}\\".format(emissivity) 
                          + "results\\" + run_name)
         for n_func,func in enumerate(func_list):
             power = wire.integrate_f(getattr(wire, func))
@@ -894,8 +894,8 @@ plot_compare_to_sim(df, out_dir,
 fit_mismatch(df, out_dir)
 
 df = data_frame[138:212]
-# df_pre = data_frame[6:7]
-# df = df_pre.append(df, ignore_index=True)
+#df_pre = data_frame[6:7]
+#df = df_pre.append(df, ignore_index=True)
 #print(df)
 test_run_name = "wire_3_post_bakeout_1150mV"
 out_dir = plot_dir + test_run_name + os.sep

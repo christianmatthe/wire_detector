@@ -4,6 +4,8 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.patches as mpatches
 import os
 import dill
+import pandas as pd
+from scipy import interpolate
 
 class Wire():
     """
@@ -17,8 +19,12 @@ class Wire():
         Diameter of the wire in meters
     l_wire : `float`
         Length of the wire in meters
-    k_heat_conductivity : `float`
+    k_heat_conductivity : `float` or `path`
         Heat conductivity of the wire matertial in (W/(m*K))
+        If `float` k_heat_conductivity will be used for all Temperatures.
+        If `str` an interpolation of the Temperature dependence will be 
+        generated in k_heat_cond_function. Valid strings can
+        be found in "gen_k_heat_cond_function"
     a_temperature_coefficient : `float`
         Temperature coefficient of resistance
     rho_specific_resistance : `float`
@@ -86,6 +92,7 @@ class Wire():
                  d_wire = 10 * 10**-6,
                  l_wire = 5.45 * 10**-2,
                  k_heat_conductivity = 174,  # Pure Tungsten
+                 k_heat_conductivity_interpolateQ = False,
                  a_temperature_coefficient = 4.7 * 10**-3,
                  rho_specific_resistance = 0.052 * 10**-6,
                  i_current = 1.0 * 10**-3,
@@ -159,6 +166,7 @@ class Wire():
         self.T_distribution = np.asarray(
             [self.T_background for n in range(self.n_wire_elements)] )
         self.simulation_time = 0
+        self.gen_k_heat_cond_function()
 
     def resistance_segment(self, i, T_dist=None):
         if T_dist is None:
@@ -195,6 +203,39 @@ class Wire():
     def f_el(self, i):
         f = (self.i_current**2 * self.resistance_segment(i) / self.l_segment)
         return f
+
+    def gen_k_heat_cond_function(self):
+        # Temperature depenent heat conductivity coefficient of Tungsten 
+        # based on 
+        # https://www.efunda.com/materials/elements/TC_Table.cfm?Element_ID=W
+        if (type(self.k_heat_conductivity) == float 
+            or type(self.k_heat_conductivity) == int):
+            self.k_heat_cond_function = lambda T : self.k_heat_conductivity
+        elif type(self.k_heat_conductivity) is str:
+            if self.k_heat_conductivity is "interpolate_tungsten":
+                # top_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep
+                # resource_dir = top_dir + "resources" + os.sep
+                # file_path = (resource_dir 
+                #             + 'Thermal_conductivity_of_Tungsten.csv')
+                # data = pd.read_csv(file_path)
+                # T_list = data['Temperature (K)'].values.tolist()
+                # k_list = data['Thermal Conductivity (W/m-K)'].values.tolist()
+                T_list = [1, 2, 3,4,5,6,7,8,9,10,15,20,30,40,50,60,70,80,90,
+                          100, 150,200,250,300, 350, 400, 500, 600, 800, 1000,
+                          1200,1400, 1600, 1800, 2000]
+                k_list = [1440, 2870, 4280, 5630, 6870, 7950, 8800, 9380, 9680,
+                          9710, 7200, 4050, 1440, 692, 427, 314, 258, 229, 217,
+                          208, 192, 185, 180, 174, 167, 159, 146, 137, 125, 
+                          118, 112, 108, 104, 101, 98]
+
+                self.k_hc_interpolation = interpolate.interp1d(T_list, k_list,
+                                                          "cubic")
+                self.k_heat_cond_function = self.k_hc_interpolation
+            else:
+                raise Exception('"k_heat_conductivity" is not a valid `str`')
+        else: 
+            raise Exception('"k_heat_conductivity" is not a valid type')
+    
     
     def f_conduction(self, i):
         # Linear interpolation approximation to differential across segment
@@ -205,16 +246,17 @@ class Wire():
 
         #Boundary Conditions:
         if i == 0:
-            q = (- self.k_heat_conductivity * (2 * (self.T_background - T[i]) 
-                 + (T[i+1] - T[i]))
+            q = (- self.k_heat_cond_function(T[i]) 
+                 * (2 * (self.T_background - T[i]) + (T[i+1] - T[i]))
                  / self.l_segment)
         elif i == self.n_wire_elements - 1:
-            q = (- self.k_heat_conductivity * (2 * (self.T_background - T[i]) 
-                 + (T[i-1] - T[i]))
+            q = (- self.k_heat_cond_function(T[i]) 
+                 * (2 * (self.T_background - T[i]) + (T[i-1] - T[i]))
                  / self.l_segment)       
         else:
-            q = (- self.k_heat_conductivity * ((T[i-1] - T[i]) 
-                 + (T[i+1] - T[i])) / self.l_segment)
+            q = (- self.k_heat_cond_function(T[i]) 
+                 * ((T[i-1] - T[i]) + (T[i+1] - T[i])) 
+                 / self.l_segment)
         #multiply with area and divide by l_segment to get watts per m
         # wire length to get f
         f = q * self.A_cross_section / self.l_segment 
@@ -314,7 +356,7 @@ class Wire():
         if np.isnan(q):
             print("f:", f)
             print("Tdist[i]:", self.T_distribution[i])
-            raise ValueError('A very specific bad thing happened.')
+            raise ValueError('q_background_gas is NAN')
         return f
 
     def f_conduction_bodge(self, i):
@@ -326,30 +368,31 @@ class Wire():
         factor = 100
         #Boundary Conditions:
         if i == 0:
-            q = (- self.k_heat_conductivity 
+            q = (- self.k_heat_cond_function(T[i]) 
                  * (2 * (self.T_background - T[i]) 
                  + (T[i+1] - T[i])) * factor
                  / self.l_segment)
         elif i == self.n_wire_elements - 1:
-            q = (- self.k_heat_conductivity 
+            q = (- self.k_heat_cond_function(T[i]) 
                  * (2 *(self.T_background - T[i]) 
                  + (T[i-1] - T[i])) * factor
                  / self.l_segment)       
         else:
             # Increase heat conductivity in ends by 100x for illustration
             if (i < 25 or i >self.n_wire_elements - 1 - 25):
-                q = (- factor * self.k_heat_conductivity * ((T[i-1] - T[i]) 
-                    + (T[i+1] - T[i])) / self.l_segment)
+                q = (- factor * self.k_heat_cond_function(T[i]) 
+                     * ((T[i-1] - T[i]) 
+                     + (T[i+1] - T[i])) / self.l_segment)
             elif i == 25:
-                q = (- self.k_heat_conductivity 
+                q = (- self.k_heat_cond_function(T[i]) 
                     * (factor *(T[i-1] - T[i]) 
                     + (T[i+1] - T[i])) / self.l_segment)
             elif i == self.n_wire_elements - 1 - 25:
-                q = (- self.k_heat_conductivity 
+                q = (- self.k_heat_cond_function(T[i]) 
                     * ((T[i-1] - T[i]) 
                     + factor * (T[i+1] - T[i])) / self.l_segment)
             else:
-                q = (- self.k_heat_conductivity * ((T[i-1] - T[i]) 
+                q = (- self.k_heat_cond_function(T[i]) * ((T[i-1] - T[i]) 
                     + (T[i+1] - T[i])) / self.l_segment)
         #multiply with area and divide by l_segment to get watts per m
         # wire length to get f

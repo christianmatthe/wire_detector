@@ -12,10 +12,10 @@ start_time = time()
 # emissivity = 0.3
 #top_dir = "current_sims_3/0.02mbar_air/"
 ###
-emissivity_list = [0.245, 0.255]
+emissivity_list = [0.67]
 for emissivity in emissivity_list:
     top_dir = (os.path.dirname(os.path.abspath(__file__)) + os.sep
-              + "current_sims_3/0.02mbar_air_em_{}/".format(emissivity))
+              + "current_sims_3/0.0005mbar_air_em_{}/".format(emissivity))
     ###
     os.makedirs(top_dir, exist_ok=True)
     results_dir = top_dir + "results/"
@@ -66,7 +66,7 @@ for emissivity in emissivity_list:
                 i_current = (d/5)**2 * i_current * 10**-3, d_wire = d * 10**-6,
                 emissivity = emissivity, l_wire=l_wire*10**-2, 
                 rho_specific_resistance=0.054 * 10**-6,
-                pressure=0.02*10**-3*10**5, m_molecular_gas= 29 * 1.674 * 10**-27,
+                pressure=0.0005*10**-3*10**5, m_molecular_gas= 29 * 1.674 * 10**-27,
                 T_cracker = 300,
                 T_background=298.25,
                 ###
