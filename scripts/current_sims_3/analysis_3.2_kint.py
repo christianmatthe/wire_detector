@@ -514,19 +514,19 @@ def fit_mismatch(data_frame, out_dir,
     ax1.set_ylabel(r"mismatch residuals [mW]")
     ax1.set_xlabel(r"T [°C]")
 
-    # 2nd x-axis ticks for max T
-    ax2 = ax1.twiny()
-    new_tick_locations = np.array([0.125,0.25,0.375,0.5,0.625,0.75,0.875])
+    # # 2nd x-axis ticks for max T
+    # ax2 = ax1.twiny()
+    # new_tick_locations = np.array([0.125,0.25,0.375,0.5,0.625,0.75,0.875])
 
-    def tick_function(X):
-        f = interp1d(T_arr, T_max_arr, kind='cubic')
+    # def tick_function(X):
+    #     f = interp1d(T_arr, T_max_arr, kind='cubic')
 
-        return ["%.3f" % z for z in V]
+    #     return ["%.3f" % z for z in V]
 
-    ax2.set_xlim(ax1.get_xlim())
-    ax2.set_xticks(new_tick_locations)
-    ax2.set_xticklabels(tick_function(new_tick_locations))
-    ax2.set_xlabel(r"Modified x-axis: $1/(1+X)$")
+    # ax2.set_xlim(ax1.get_xlim())
+    # ax2.set_xticks(new_tick_locations)
+    # ax2.set_xticklabels(tick_function(new_tick_locations))
+    # ax2.set_xlabel(r"Modified x-axis: $1/(1+X)$")
 
     plt.tight_layout()
 
