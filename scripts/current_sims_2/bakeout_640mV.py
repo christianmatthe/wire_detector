@@ -3,6 +3,11 @@ import datetime as dt
 import matplotlib.pyplot as plt
 # 0.04mbar run, Scroll pump
 file_dir = "C:\\Users\\Christian\\Documents\\StudiumPhD\\Measurements\\"
+# file = file_dir + '2021-06-07_wire_3_post_300C_bakeout_fill.csv'
+# data_frame = pd.read_csv(file)
+
+# df = data_frame[6:64]
+
 file = file_dir + '2021-05-10_test_vac_0.04_mbar_fill.csv'
 data_frame = pd.read_csv(file)
 
@@ -40,7 +45,7 @@ mpl.rc('font', **font)
 
 t_delta_list = [(df_bakeout["date_time"][i] - df_bakeout["date_time"][119]
                 ).total_seconds()/60
-                for i in range(119,163)]
+                for i in range(119,164)]
 print(t_delta_list)
 fig = plt.figure(0, figsize=(8,6.5))
 ax1=plt.gca()
@@ -53,9 +58,26 @@ plt.grid(True)
 
 format_im = 'png' #'pdf' or png
 dpi = 300
-plt.savefig("test"
+plt.savefig("bakeout_i_over_t"
             + '.{}'.format(format_im),
             format=format_im, dpi=dpi)
+ax1.cla()
+
+fig = plt.figure(0, figsize=(8,6.5))
+ax1=plt.gca()
+ax1.plot(t_delta_list, df_bakeout["T (°C)"],
+             marker = ".", linestyle="None")
+ax1.set_ylabel(r"T [°C]")
+ax1.set_xlabel(r"t [min]")
+plt.grid(True)
+#plt.legend(shadow=True)
+
+format_im = 'png' #'pdf' or png
+dpi = 300
+plt.savefig("bakeout_T_over_t"
+            + '.{}'.format(format_im),
+            format=format_im, dpi=dpi)
+ax1.cla()
 
 
 #stability after backkeout
@@ -81,3 +103,4 @@ dpi = 300
 plt.savefig("test_after"
             + '.{}'.format(format_im),
             format=format_im, dpi=dpi)
+ax1.cla()

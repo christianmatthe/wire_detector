@@ -44,7 +44,7 @@ for emissivity in emissivity_list:
     #exp_list = np.linspace(14,18,num = 5)  # later normalized to per cm**2 
     l_beam_list = [1.6]  # in cm
     l_wire_list = [#5,
-                    2.7
+                    2.9
                 ] # in cm
 
     min_segment_length = 0.1*10**-3
@@ -78,9 +78,17 @@ for emissivity in emissivity_list:
                 ) 
 
             # Run the Simulation
-            mod = 4
+            # mod = 4
 
-            n_steps_no_beam = 30000 * mod
+            # n_steps_no_beam = 30000 * mod
+            # n_steps = 10000 * mod
+            # record_steps = 1000
+            # time_step = 0.001 / mod
+
+            #Fast settings
+            n_wire_elements = 50
+            mod = 2
+            n_steps_no_beam = 10000 * mod
             n_steps = 10000 * mod
             record_steps = 1000
             time_step = 0.001 / mod

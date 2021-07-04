@@ -351,6 +351,7 @@ class Wire():
            /np.sqrt(self.T_background))
         # multiply with total outward surface area of wire segment 
         f = q * np.pi * self.d_wire *self.l_segment / self.l_segment
+
         #print("f:", f)
         #print("Tdist[{}]:".format(i), self.T_distribution[i])
         if np.isnan(q):
