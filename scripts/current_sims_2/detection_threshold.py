@@ -31,6 +31,11 @@ def make_list(data_frame):
                       + (R_err[i]*i_list[i]**2)**2)
              for i in range(len(i_list))]
     return R_list, R_err, P_list, P_err
+
+def power_limit(R_err, dP_per_dR):
+    #flow limit in atoms per second (on the wire)
+    power = R_err * dP_per_dR
+    return power
     
 def flow_limit(R_err, dP_per_dR):
     joules_per_electronvolt = 1.60218e-19
@@ -61,9 +66,15 @@ if __name__ == "__main__":
                       / (R_list[i+1] - R_list[i-1]) 
                               for i in range(1,len(R_list)-1)]
     #print(dP_per_dR_list)
+    conv = 1e-4
+    power_limit_list = [1e6*power_limit(R_err[i+1], dP_per_dR_list[i])
+                       for i in range(len(dP_per_dR_list))]
+    print("power limit list: ", power_limit_list)
+
     flow_limit_list = [flow_limit(R_err[i+1], dP_per_dR_list[i])
                        for i in range(len(dP_per_dR_list))]
     flux_limit_list = [flow / A_illuminated for flow in flow_limit_list]
+    flux_limit_plot = 1e-0 * np.array(flow_limit_list)
     #print(flux_limit_list)
     
     fig = plt.figure(0, figsize=(8,6.5))
@@ -84,12 +95,12 @@ if __name__ == "__main__":
     def flux_to_P(flux):
         joules_per_electronvolt = 1.60218e-19
         energy_per_atom = (4.75/2) * joules_per_electronvolt
-        return flux * A_illuminated * energy_per_atom * 10e6
+        return flux * A_illuminated * energy_per_atom * 1e6
 
     def P_to_flux(P):
         joules_per_electronvolt = 1.60218e-19
         energy_per_atom = (4.75/2) * joules_per_electronvolt
-        return P /( A_illuminated * energy_per_atom * 10e6)
+        return P /( A_illuminated * energy_per_atom * 1e6)
 
     def i_to_T(x):
         f_int = interp1d(df["I meas (mA)"].values.tolist(),
@@ -171,3 +182,31 @@ if __name__ == "__main__":
                 + '.{}'.format(format_im),
                 format=format_im, dpi=dpi)
     ax1.cla()
+
+
+    #dp_per_dR plot
+    dP_per_dR_list = [(P_list[i+1] - P_list[i-1])
+                      / (R_list[i+1] - R_list[i-1]) 
+                              for i in range(1,len(R_list)-1)]
+    i_list = df["I meas (mA)"].values.tolist()
+
+    fig = plt.figure(0, figsize=(8,6.5))
+    ax1=plt.gca()
+    ax1.plot(i_list[:-2],[10**6 * entry for entry in  dP_per_dR_list],
+            ".", markersize=15)
+
+    ax1.set_xlabel(r"Current [mA]")
+    ax1.set_ylabel(r"dP_per_dR [uW/Ohm]")
+    format_im = 'png' #'pdf' or png
+    dpi = 300
+    plt.grid(True)
+    plt.tight_layout()
+    #plt.show()
+    top_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep
+    plot_dir = top_dir + "detection_threshold" + os.sep
+    os.makedirs(plot_dir, exist_ok=True)
+    plt.savefig(plot_dir + "dp_per_dR"
+                + '.{}'.format(format_im),
+                format=format_im, dpi=dpi)
+    ax1.cla()
+

@@ -23,8 +23,9 @@ mpl.rc('font', **font)
 
 top_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep
 # plot_dir = top_dir + "analysis_3
-emissivity = 0.67
-plot_dir = top_dir + "analysis_3_em_{}/".format(emissivity)
+#emissivity = 0.42
+emissivity = 0.25
+plot_dir = top_dir + "analysis_3_em_{}_kint/".format(emissivity)
 os.makedirs(plot_dir, exist_ok=True)
 heat_flow_dir = top_dir + "heat_flow/"
 
@@ -55,11 +56,8 @@ i_current_list = [0.1,
 #                     #,8,9,10
 #                     ]
 l_wire_list = [#5,
-                2.7
+                2.5
                ] # in cm
-
-pressure = 0.0005
-#pressure = 0.02
 
 U_arr_full = np.zeros((len(l_wire_list), len(i_current_list) ))
 signal_arr_full = np.zeros((len(l_wire_list), len(i_current_list)))
@@ -75,10 +73,8 @@ for n_lw, l_wire in enumerate(l_wire_list):
         #TODO Include enumerates, output plots for every i_current
         wire = Wire()
         #wire = wire.load(top_dir + "0.02mbar_air\\" + "results\\" + run_name)
-        wire = wire.load(top_dir + "{}mbar_air_em_{}\\".format(
-                         pressure, emissivity) 
+        wire = wire.load(top_dir + "0.0005mbar_air_em_{}_kint\\".format(emissivity) 
                          + "results\\" + run_name)
-        wire.gen_k_heat_cond_function()
         #l_beam = wire.l_beam
 
         U_beam_off = wire.U_wire(0)
@@ -96,23 +92,6 @@ for n_lw, l_wire in enumerate(l_wire_list):
     U_arr_full[n_lw] = U_arr
     signal_arr_full[n_lw] = signal_arr
 
-print("T_avg_arr: ", T_avg_arr)
-print("T_max_arr: ", T_max_arr)
-def T_avg_to_T_max(T_avg):
-    f_int = interp1d(T_avg_arr - 273.15, T_max_arr - 273.15
-            #  ,
-            #  kind = "cubic"
-            ,fill_value="extrapolate"
-                )
-    return f_int(T_avg)
-
-def T_max_to_T_avg(T_max):
-    f_int = interp1d(T_max_arr - 273.15, T_avg_arr - 273.15
-            #  ,
-            #  kind = "cubic"
-            ,fill_value="extrapolate"
-                )
-    return f_int(T_max)
 
 # Integrated power graph
 if True:
@@ -125,19 +104,20 @@ if True:
     power_arr_full = np.zeros((len(func_list), len(i_current_list)))
     resistance_arr = np.zeros( len(i_current_list))
     T_arr = np.zeros(len(i_current_list))
+    T_max_arr = np.zeros(len(i_current_list))
     for n_i, i_current in enumerate(i_current_list):
-        run_name = "lw_{}_i_{}".format(2.7,i_current)
-        wire = wire.load(top_dir + "{}mbar_air_em_{}\\".format(
-                         pressure, emissivity) 
+        run_name = "lw_{}_i_{}".format(2.5,i_current)
+        wire = wire.load(top_dir + "0.0005mbar_air_em_{}_kint\\".format(emissivity) 
                          + "results\\" + run_name)
-        wire.gen_k_heat_cond_function()
         for n_func,func in enumerate(func_list):
             power = wire.integrate_f(getattr(wire, func))
             power_arr_full[n_func, n_i] = power
             resistance = wire.resistance_total()
             resistance_arr[n_i] = resistance
             T_avg = np.average(wire.T_distribution)
-            T_arr[n_i] = T_avg 
+            T_arr[n_i] = T_avg
+            T_max_arr[n_i] = np.amax(wire.T_distribution)
+             
     # Generate interpolation objects
     f_cond_interpolated = interp1d(T_arr, power_arr_full[1], kind = "cubic"
                                    ,fill_value="extrapolate")
@@ -401,147 +381,6 @@ def plot_compare_to_sim(data_frame, out_dir,
                 format=format_im, dpi=dpi)
     ax1.cla()
 
-# Plot simulation  and data into same plot
-def plot_compare_to_sim_just_el(data_frame, out_dir,
-                        T_arr=T_arr,
-                        power_arr_full=power_arr_full,
-                        x_lim=[0,400],
-                        y_lim=[-0.2,3],
-                        y_lim_res=[-0.2,0.2]
-                        ):
-
-    # Observables to P_synth_arr
-    U_list = data_frame["U meas (mV)"].values.tolist()
-    U_err = data_frame["err U"].values.tolist()
-    i_list = data_frame["I meas (mA)"].values.tolist()
-    i_err = data_frame["err I"].values.tolist()
-
-    R_list = [(U_list[i])/i_list[i] for i in range(len(i_list))]
-    R_err = [np.sqrt(((U_err[i])/i_list[i])**2 
-                        + (i_err[i]*(U_list[i])/i_list[i]**2)**2)
-                for i in range(len(i_list))]
-
-    P_list = [10**-6 * (i_list[i])**2* R_list[i] for i in range(len(i_list))]
-    P_err = [10**-6 * np.sqrt((i_err[i] * 2* i_list[i] * R_list[i])**2 
-                      + (R_err[i]*i_list[i]**2)**2)
-             for i in range(len(i_list))]
-    alpha = 4.7*10**-3
-    dT_list = [(1/alpha)*(R_list[i]/R_list[0] - 1) for i in range(len(i_list))]
-    dT_err = [(1/alpha)*np.sqrt((R_err[i]/R_list[0])**2 
-                    + (R_err[0]*R_list[i]/(R_list[0]**2))**2)
-            for i in range(len(i_list))]
-    # dT_err = [5
-    #         for i in range(len(i_list))]
-    T_list  = [25 + dT_list[i] for i in range(len(i_list))]
-
-    P_el_arr = np.array(P_list)
-    P_cond_synth_arr = np.array([f_cond_interpolated(T + 273.15) 
-                                for T in T_list])
-    P_rad_synth_arr = np.array([f_rad_interpolated(T + 273.15) 
-                                for T in T_list])
-    P_gas_synth_arr = np.array([P_el_arr[i] - P_cond_synth_arr[i] 
-                                - P_rad_synth_arr[i]
-                                for i in range(len(P_el_arr))])
-    P_synth_arr = np.array([P_el_arr, P_cond_synth_arr, P_rad_synth_arr, 
-                            P_gas_synth_arr])
-
-    # Plot sim
-    #  P over T
-    fig = plt.figure(0, figsize=(8,6.5))
-    ax1=plt.gca()
-    label_list = [r"$P_{el,\,sim}$", r"$P_{conduction,\,sim}$",
-                  r"$P_{rad,\,sim}$"
-                     #, r"$P_{beam}$", r"$P_{beam gas}$"
-                     #, r"$P_{bb cracker}$"
-                     , r"$P_{background\,gas,\,sim}$"
-                     #, r"$P_{laser}$"
-                     ]
-    color_list = ["C0", "C1", "C2", "C6"]
-    marker_list = ["-", "--", "--", "--"]
-    for n_func,func in enumerate(func_list):
-        x_lst = T_arr - 273.15
-        p_lst = 10**3 * power_arr_full[n_func]
-        ax1.plot(x_lst, p_lst,
-                ls = marker_list[n_func], label=label_list[n_func]
-                ,color=color_list[n_func]
-                 )
-
-    # Plot P_synth from measurements
-    label_list = [r"$P_{el,\,meas}$", r"$P_{conduction\,synth}$", r"$P_{rad\,synth}$"
-                    #, r"$P_{beam}$", r"$P_{beam gas}$"
-                    #, r"$P_{bb cracker}$"
-                    , r"$P_{missmatch}$"
-                    #, r"$P_{gas\,synth}$"
-                    #, r"$P_{laser}$"
-                    ]
-    color_list = ["C0", "C1", "C2", "C6"]
-    for n_func,func in enumerate([func_list[0]]):
-        x_lst = np.array(T_list)
-        p_lst = 10**3 * P_synth_arr[n_func]
-        ax1.errorbar(x_lst, p_lst, P_err,
-                marker = ".", label=label_list[n_func]
-                ,color=color_list[n_func], linestyle="None"
-                 )
-
-    ax1.set_ylabel(r"Power [mW]")
-    ax1.set_xlabel(r"T$_{avg}$ [°C]")
-    plt.xlim(x_lim)
-    plt.ylim(y_lim)
-
-
-    secax2 = ax1.secondary_xaxis(-0.15, 
-                                functions=(T_avg_to_T_max, T_max_to_T_avg))
-    secax2.set_xlabel(r'T$_{max}$ [°C]')
-
-    plt.grid(True)
-    plt.legend(shadow=True,ncol =1)
-    plt.tight_layout()
-
-    format_im = 'png' #'pdf' or png
-    dpi = 300
-    os.makedirs(out_dir, exist_ok=True)
-    plt.savefig(out_dir + "compare_to_sim_el_{}".format(x_lim)
-                + '.{}'.format(format_im),
-                format=format_im, dpi=dpi)
-    ax1.cla()
-
-    # Plot Residuals (n_func = 3 == P_missmatch /background gas)
-    P_gas_int_arr = np.array([f_gas_interpolated(T + 273.25) 
-                                for T in T_list])
-
-    P_residual_arr = P_gas_synth_arr - P_gas_int_arr
-
-    fig = plt.figure(0, figsize=(8,6.5))
-    ax1=plt.gca()
-    n_func = 3
-    x_lst = np.array(T_list)
-    p_lst = 10**3 * P_residual_arr
-    ax1.errorbar(x_lst, p_lst, yerr= np.array(P_err)*10**3, 
-            # xerr=dT_err,
-            marker = ".", label=label_list[n_func]
-            ,color=color_list[n_func], linestyle="None"
-                )
-
-    x_lst = T_arr - 273.15
-    p_lst = 0 * 10**3 * power_arr_full[n_func]
-    ax1.plot(x_lst, p_lst,
-            ls = "--", label=label_list[n_func]
-            ,color=color_list[n_func]
-                )
-    plt.xlim(x_lim)
-    plt.ylim(y_lim_res)
-
-    ax1.set_ylabel(r"Power residuals [mW]")
-    ax1.set_xlabel(r"T [°C]")
-    plt.tight_layout()
-
-    plt.grid(True)
-    plt.legend(shadow=True,ncol =2)
-    plt.savefig(out_dir + "residuals_el_{}".format(x_lim)
-                + '.{}'.format(format_im),
-                format=format_im, dpi=dpi)
-    ax1.cla()
-
 # fit to residuals
 def fit_mismatch(data_frame, out_dir,
                         T_arr=T_arr,
@@ -598,9 +437,12 @@ def fit_mismatch(data_frame, out_dir,
             #+ c3 * f_cond_interpolated
             )
         return f
-    T_arr_fit = np.delete(np.array(T_list), [1,32,34])
+    # T_arr_fit = np.delete(np.array(T_list), [1,32,34])
+    # mismatch_fit = mismatch
+    # mismatch_fit = np.delete(mismatch_fit, [1,32,34])
+    T_arr_fit = np.array(T_list)
     mismatch_fit = mismatch
-    mismatch_fit = np.delete(mismatch_fit, [1,32,34])
+    mismatch_fit = np.array(mismatch_fit)
     # for i in [1,32, 34]:
     #     del T_list_fit[i] 
     popt, pcov = sp.optimize.curve_fit(fit_func, T_arr_fit, mismatch_fit,
@@ -675,6 +517,21 @@ def fit_mismatch(data_frame, out_dir,
 
     ax1.set_ylabel(r"mismatch residuals [mW]")
     ax1.set_xlabel(r"T [°C]")
+
+    # # 2nd x-axis ticks for max T
+    # ax2 = ax1.twiny()
+    # new_tick_locations = np.array([0.125,0.25,0.375,0.5,0.625,0.75,0.875])
+
+    # def tick_function(X):
+    #     f = interp1d(T_arr, T_max_arr, kind='cubic')
+
+    #     return ["%.3f" % z for z in V]
+
+    # ax2.set_xlim(ax1.get_xlim())
+    # ax2.set_xticks(new_tick_locations)
+    # ax2.set_xticklabels(tick_function(new_tick_locations))
+    # ax2.set_xlabel(r"Modified x-axis: $1/(1+X)$")
+
     plt.tight_layout()
 
     plt.grid(True)
@@ -699,12 +556,6 @@ def plot_R_vs_I_4wire_err(data_frame, out_dir):
     R_err = [np.sqrt(((U_err[i])/i_list[i])**2 
                         + (i_err[i]*(U_list[i])/i_list[i]**2)**2)
                 for i in range(len(i_list))]
-
-    P_list = [ 1e-3 * (i_list[i])**2* R_list[i] for i in range(len(i_list))]
-    P_err = [ 1e-3 * np.sqrt((i_err[i] * 2* i_list[i] * R_list[i])**2 
-                      + (R_err[i]*i_list[i]**2)**2)
-             for i in range(len(i_list))]
-
     fig = plt.figure(0, figsize=(8,6.5))
     ax1=plt.gca()
     for n_lw, l_wire in enumerate(l_wire_list):
@@ -719,25 +570,6 @@ def plot_R_vs_I_4wire_err(data_frame, out_dir):
     format_im = 'png' #'pdf' or png
     dpi = 300
     plt.savefig(out_dir +"R_vs_I_4wire_err"
-                + '.{}'.format(format_im),
-                format=format_im, dpi=dpi)
-    ax1.cla()
-
-    # Plot R vs P 
-    fig = plt.figure(0, figsize=(8,6.5))
-    ax1=plt.gca()
-    for n_lw, l_wire in enumerate(l_wire_list):
-        ax1.errorbar(P_list, R_list, R_err,P_err,
-                ".", label="{}".format(l_wire) + r"$cm$")
-
-    ax1.set_ylabel(r"Resistance [$\Omega$]")
-    ax1.set_xlabel(r"Power [mW]")
-    plt.grid(True)
-    #plt.legend(shadow=True, title = "Wire Length")
-
-    format_im = 'png' #'pdf' or png
-    dpi = 300
-    plt.savefig(out_dir +"R_vs_P_err"
                 + '.{}'.format(format_im),
                 format=format_im, dpi=dpi)
     ax1.cla()
@@ -977,136 +809,20 @@ def plot_P_vs_T_synth(data_frame, out_dir,
 
     ax1.cla()
 
-
-# # 1000mbar run
-# file_dir = "C:\\Users\\Christian\\Documents\\StudiumPhD\\Measurements\\"
-# file = file_dir + '2021-05-07_test_vac_1000mbar.csv'
-# data_frame = pd.read_csv(file)
-# print(data_frame.keys())
-# # inputs
-# test_run_name = "1000mbar"
-# out_dir = plot_dir + test_run_name + os.sep
-# plot_R_vs_I_4wire_err(data_frame, out_dir)
-# plot_P_vs_T(data_frame, out_dir)
-# plot_P_vs_T_synth(data_frame, out_dir)
-
-# # 1000mbar run
-# file_dir = "C:\\Users\\Christian\\Documents\\StudiumPhD\\Measurements\\"
-# file = file_dir + '2021-05-07_test_vac_1000mbar.csv'
-# data_frame = pd.read_csv(file)
-# print(data_frame.keys())
-# # inputs
-# test_run_name = "1000mbar"
-# out_dir = plot_dir + test_run_name + os.sep
-# plot_R_vs_I_4wire_err(data_frame, out_dir)
-# plot_P_vs_T(data_frame, out_dir)
-# plot_P_vs_T_synth(data_frame, out_dir)
-
-# # 0.04mbar run, Scroll pump
-file_dir = "C:\\Users\\Christian\\Documents\\StudiumPhD\\Measurements\\"
-file = file_dir + '2021-05-10_test_vac_0.04_mbar_fill.csv'
-data_frame = pd.read_csv(file)
-df_bakeout = data_frame[119:163]
-data_frame_first_day = data_frame[0:92]
-data_frame_second_day = data_frame[93:167]
-data_frame_cut = data_frame[0:167]
-#   .reset_index() is alternative to .values.tolist()
-data_frame_post_bakeout = data_frame[168:320]  #   .reset_index()
-data_frame_baked_400 = data_frame[168:218]
-# print(data_frame.keys())
-# print(data_frame_post_bakeout.keys())
-# # inputs
-# test_run_name = "0.04mbar"
-# out_dir = plot_dir + test_run_name + os.sep
-# plot_R_vs_I_4wire_err(data_frame_cut, out_dir)
-# plot_P_vs_T(data_frame_cut, out_dir)
-# plot_P_vs_T_synth(data_frame_cut, out_dir)
-# # inputs
-# test_run_name = "0.04mbar_first_day"
-# out_dir = plot_dir + test_run_name + os.sep
-# plot_R_vs_I_4wire_err(data_frame_first_day, out_dir)
-# plot_P_vs_T(data_frame_first_day, out_dir)
-# plot_P_vs_T_synth(data_frame_first_day, out_dir)
-# # inputs
-# test_run_name = "0.04mbar_second_day"
-# out_dir = plot_dir + test_run_name + os.sep
-# plot_R_vs_I_4wire_err(data_frame_second_day, out_dir)
-# plot_P_vs_T(data_frame_second_day, out_dir)
-# plot_P_vs_T_synth(data_frame_second_day, out_dir)
-# # inputs
-# test_run_name = "0.04mbar_baked"
-# out_dir = plot_dir + test_run_name + os.sep
-# plot_R_vs_I_4wire_err(data_frame_post_bakeout, out_dir)
-# plot_P_vs_T(data_frame_post_bakeout, out_dir)
-# plot_P_vs_T_synth(data_frame_post_bakeout, out_dir, x_lim=[0,400],
-#                   y_lim=[-1,1.8])
-
-# plot_compare_to_sim(data_frame_post_bakeout, out_dir,
-#                     x_lim=[0,400],
-#                     y_lim=[-0.2,3])
-# plot_compare_to_sim(data_frame_post_bakeout, out_dir,
-#                     x_lim=[0,720],
-#                     y_lim=[-0.2,13.5],
-#                     y_lim_res = [-4,0.2])
-# plot_compare_to_sim(data_frame_post_bakeout, out_dir,
-#                     x_lim=[0,150],
-#                     y_lim=[-0.1,0.6],
-#                     y_lim_res=[-0.02,0.02] )
-
-test_run_name = "0.04mbar_baked_400"
-out_dir = plot_dir + test_run_name + os.sep
-df = data_frame_baked_400 
-# plot_R_vs_I_4wire_err(df, out_dir)
-# plot_P_vs_T(df, out_dir)
-# plot_P_vs_T_synth(df, out_dir)
-
-# plot_compare_to_sim(df, out_dir, y_lim_res=[-0.05,0.30])
-# plot_compare_to_sim(df, out_dir,
-#                     x_lim=[0,150],
-#                     y_lim=[-0.1,0.6],
-#                     y_lim_res=[-0.10,0.10] )
-fit_mismatch(df, out_dir)
-
 ################
 file_dir = "C:\\Users\\Christian\\Documents\\StudiumPhD\\Measurements\\"
-file = file_dir + '2021-06-07_wire_3_post_300C_bakeout_fill.csv'
+file = file_dir + '2021-07-29_Keithley.csv'
 data_frame = pd.read_csv(file)
-df = data_frame[6:44]
-test_run_name = "wire_3_post_bakeout"
+do = 2
+df = data_frame[30-do:62-do]
+# df_pre = data_frame[26:29]
+# df = df_pre.append(df, ignore_index=True)
+test_run_name = "Keithley_W_Clean"
 out_dir = plot_dir + test_run_name + os.sep
-plot_R_vs_I_4wire_err(df, out_dir)
 plot_P_vs_T_synth(df, out_dir)
 
 plot_compare_to_sim(df, out_dir, y_lim_res=[-0.05,0.30])
 plot_compare_to_sim(df, out_dir,
-                    x_lim=[0,150],
-                    y_lim=[-0.1,0.6],
-                    y_lim_res=[-0.10,0.10] )
-plot_compare_to_sim_just_el(df, out_dir, y_lim_res=[-0.05,0.30])
-plot_compare_to_sim_just_el(df, out_dir,
-                    x_lim=[0,150],
-                    y_lim=[-0.1,0.6],
-                    y_lim_res=[-0.10,0.10] )
-
-fit_mismatch(df, out_dir)
-
-df = data_frame[138:212]
-#df_pre = data_frame[6:7]
-#df = df_pre.append(df, ignore_index=True)
-#print(df)
-test_run_name = "wire_3_post_bakeout_1150mV"
-out_dir = plot_dir + test_run_name + os.sep
-plot_R_vs_I_4wire_err(df, out_dir)
-plot_P_vs_T_synth(df, out_dir)
-
-plot_compare_to_sim(df, out_dir, y_lim_res=[-0.05,0.30])
-plot_compare_to_sim(df, out_dir,
-                    x_lim=[0,150],
-                    y_lim=[-0.1,0.6],
-                    y_lim_res=[-0.10,0.10] )
-
-plot_compare_to_sim_just_el(df, out_dir, y_lim_res=[-0.05,0.30])
-plot_compare_to_sim_just_el(df, out_dir,
                     x_lim=[0,150],
                     y_lim=[-0.1,0.6],
                     y_lim_res=[-0.10,0.10] )

@@ -36,6 +36,12 @@ for n_lw, l_wire in enumerate(l_wire_list):
                             T_cracker)
             wire = Wire()
             wire = wire.load(top_dir + "results\\" + run_name)
+            # Add function that didn't exist
+            # back when this program  was first run
+            wire.gen_k_heat_cond_function()
+            wire.m_molecular_gas = 2 * 1.674 * 10**-27
+            wire.p_laser = 0
+            ###
             wire.plot_heat_flow(top_dir + "plots\\" 
                                 + "heat_flow/log_{}".format(run_name)
                                 , log_y = True)

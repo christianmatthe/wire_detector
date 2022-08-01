@@ -17,7 +17,7 @@ df_bakeout = data_frame[119:164]
 
 def make_datetime(data_frame):
     data_frame["date_time"] = [dt.datetime(1,1,1) for i in range(len(data_frame))]
-    for index, row in df_bakeout.iterrows():
+    for index, row in data_frame.iterrows():
         date_list = data_frame["Date"][index].split("-")
         time_list = data_frame["Time"][index].split(":")
         date_time =dt.datetime(year = int(date_list[2]),

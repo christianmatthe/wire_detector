@@ -26,7 +26,7 @@ class Wire():
         generated in k_heat_cond_function. Valid strings can
         be found in "gen_k_heat_cond_function"
     a_temperature_coefficient : `float`
-        Temperature coefficient of resistance
+        Temperature coefficient of resistance (1/K)
     rho_specific_resistance : `float`
         specific resitance fo wire material in (Ohm m)
     i_current : `float`

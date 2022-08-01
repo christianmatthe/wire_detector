@@ -23,8 +23,9 @@ mpl.rc('font', **font)
 
 top_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep
 # plot_dir = top_dir + "analysis_3
-emissivity = 0.67
-plot_dir = top_dir + "analysis_3_em_{}/".format(emissivity)
+# emissivity = 0.67
+emissivity = 0.25
+plot_dir = top_dir + "analysis_3.1_em_{}_2022_03_21/".format(emissivity)
 os.makedirs(plot_dir, exist_ok=True)
 heat_flow_dir = top_dir + "heat_flow/"
 
@@ -58,8 +59,8 @@ l_wire_list = [#5,
                 2.7
                ] # in cm
 
-pressure = 0.0005
-#pressure = 0.02
+#pressure = 0.0005
+pressure = 0.02
 
 U_arr_full = np.zeros((len(l_wire_list), len(i_current_list) ))
 signal_arr_full = np.zeros((len(l_wire_list), len(i_current_list)))
@@ -402,6 +403,7 @@ def plot_compare_to_sim(data_frame, out_dir,
     ax1.cla()
 
 # Plot simulation  and data into same plot
+# Reeval HACK subtract gas contribution in plot and do not show it
 def plot_compare_to_sim_just_el(data_frame, out_dir,
                         T_arr=T_arr,
                         power_arr_full=power_arr_full,
@@ -442,6 +444,8 @@ def plot_compare_to_sim_just_el(data_frame, out_dir,
     P_gas_synth_arr = np.array([P_el_arr[i] - P_cond_synth_arr[i] 
                                 - P_rad_synth_arr[i]
                                 for i in range(len(P_el_arr))])
+    # Reeval HACK subtract gas contribution in plot and do not show it
+    P_el_arr = P_el_arr - P_gas_synth_arr
     P_synth_arr = np.array([P_el_arr, P_cond_synth_arr, P_rad_synth_arr, 
                             P_gas_synth_arr])
 
@@ -458,9 +462,16 @@ def plot_compare_to_sim_just_el(data_frame, out_dir,
                      ]
     color_list = ["C0", "C1", "C2", "C6"]
     marker_list = ["-", "--", "--", "--"]
-    for n_func,func in enumerate(func_list):
+    # Reeval HACK :- 1 excludes back gas from plot
+    # Reeval HACK 0 means just el is plotted, subtract power_arr index 3
+    # (back gas from el) 
+    for n_func,func in enumerate(func_list[:-1]):
         x_lst = T_arr - 273.15
-        p_lst = 10**3 * power_arr_full[n_func]
+        # HACK
+        if n_func == 0:
+            p_lst = 10**3 * (power_arr_full[n_func] - power_arr_full[3])
+        else:
+            p_lst = 10**3 * power_arr_full[n_func]
         ax1.plot(x_lst, p_lst,
                 ls = marker_list[n_func], label=label_list[n_func]
                 ,color=color_list[n_func]
@@ -475,6 +486,8 @@ def plot_compare_to_sim_just_el(data_frame, out_dir,
                     #, r"$P_{laser}$"
                     ]
     color_list = ["C0", "C1", "C2", "C6"]
+    # Reeval HACK 0 means just el is plotted, subtract power_arr index 3
+    # (back gas from el)
     for n_func,func in enumerate([func_list[0]]):
         x_lst = np.array(T_list)
         p_lst = 10**3 * P_synth_arr[n_func]
@@ -541,6 +554,8 @@ def plot_compare_to_sim_just_el(data_frame, out_dir,
                 + '.{}'.format(format_im),
                 format=format_im, dpi=dpi)
     ax1.cla()
+
+
 
 # fit to residuals
 def fit_mismatch(data_frame, out_dir,
