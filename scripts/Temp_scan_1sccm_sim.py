@@ -12,14 +12,13 @@ start_time = time()
 # emissivity = 0.3
 #top_dir = "current_sims_3/0.02mbar_air/"
 ###
-#emissivity_list = [0.23,0.25,0.27]
-#emissivity_list = [0.05]
-emissivity_list = [0.08]
-pressure = 0
+#TODO CHANE everythign related to distance form source
+emissivity_list = [0.2]
+pressure = 1.1e-5 # pressure at 1sccm flow inn HABS chamber
 for emissivity in emissivity_list:
     top_dir = (os.path.dirname(os.path.abspath(__file__)) + os.sep
               #+ "current_sims_3/0.0005mbar_air_em_{}_kint/".format(emissivity)
-              + "current_sims_3/{}mbar_air_em_{}/".format(pressure,emissivity)
+              + "Temp_scan_sims/{}mbar_H2_em_{}/".format(pressure,emissivity)
               )
     ###
     os.makedirs(top_dir, exist_ok=True)
@@ -28,26 +27,12 @@ for emissivity in emissivity_list:
     os.makedirs(results_dir, exist_ok=True)
     os.makedirs(plot_dir, exist_ok=True)
     d = 5
-    i_current_list = [0.1,
-                    0.5,0.7,1,1.2,1.5,
-                    1.7, 1.9,
-                    # 2,
-                    2.0,
-                    2.2, 2.4, 2.6, 2.8,
-                    # 3,
-                    3.0,
-                    3.2, 3.4, 3.6, 3.8,
-                    # 4,
-                    4.0,
-                    4.2, 4.4, 4.6, 4.8,
-                    # 5,
-                    5.2, 5.4, 5.6, 5.8,
-                    # 6,7,8,9,10
-                    6.0, 7.0, 8.0, 9.0, 10.0
+    i_current_list = [1.0
                     ]
-    exp_list = [17]
+    #exp_list = [17.651] 
+    phi_exp = 17.651  # is 1 sccm : sccm = 4.478 * 10**17
     #exp_list = np.linspace(14,18,num = 5)  # later normalized to per cm**2 
-    l_beam_list = [1.6]  # in cm
+    #l_beam_list = [1.6]  # in cm
     l_wire_list = [#5,
                     2
                 ] # in cm
@@ -74,11 +59,11 @@ for emissivity in emissivity_list:
                 emissivity = emissivity, l_wire=l_wire*10**-2, 
                 rho_specific_resistance=0.054 * 10**-6,
                 pressure=pressure * 10**-3*10**5, # mbar to kpa
-                m_molecular_gas= 29 * 1.674 * 10**-27,
-                T_cracker = 300,
+                m_molecular_gas= 2 * 1.674 * 10**-27,
+                T_cracker = 2350,
                 T_background=298.25,
                 ###
-                phi_beam=0, T_base=None
+                phi_beam= 10**phi_exp, T_base=None
                 ###
                 ) 
 

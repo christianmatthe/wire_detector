@@ -65,7 +65,7 @@ if __name__ == "__main__":
     dP_per_dR_list = [(P_list[i+1] - P_list[i-1])
                       / (R_list[i+1] - R_list[i-1]) 
                               for i in range(1,len(R_list)-1)]
-    #print(dP_per_dR_list)
+    print(dP_per_dR_list)
     conv = 1e-4
     power_limit_list = [1e6*power_limit(R_err[i+1], dP_per_dR_list[i])
                        for i in range(len(dP_per_dR_list))]
@@ -86,6 +86,7 @@ if __name__ == "__main__":
     ax1.set_xlabel(r"Current [mA]")
     # #print(np.asarray(df["T (°C)"].values.tolist()[1:-1]).astype(float))
     T_arr = np.asarray(df["T (°C)"].values.tolist()).astype(float)
+    print("T_arr: ", list(T_arr))
     # ax1.plot(T_arr,flux_limit_list,
     #         ".")
 
