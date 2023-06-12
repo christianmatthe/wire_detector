@@ -98,7 +98,9 @@ class Wire():
                  i_current = 1.0 * 10**-3,
                  T_background = 293.15,
                  emissivity = 0.2,
-                 E_recombination = 7.61 * 10**-19,
+                 E_recombination = 7.1511 * 10**-19, # Joules
+            # https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.121.013001
+            # equivalent to 4.4634 eV
                  phi_beam = 1 * (10**17),  # Atoms per second in entire beam
                  l_beam = 25 * 10**-3,
                  sigma_beam = 2 * 10**-3, # from G. Schwendler Thesis
