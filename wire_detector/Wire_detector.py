@@ -287,8 +287,8 @@ class Wire():
         # power to a single wire element
         elif self.beam_shape == "Point":
             x_pos = ((i + 0.5) * self.l_segment - (self.l_wire / 2))
-            if (self.x_offset_beam - x_pos) < (self.l_segment/2):
-                f = self.phi_beam * self.E_recombination / self.l_segment
+            if np.abs((self.x_offset_beam - x_pos)) < (self.l_segment/2):
+                f = self.phi_beam * (self.E_recombination/2) / self.l_segment
             else:
                 f  = 0
         else:
@@ -312,7 +312,13 @@ class Wire():
             f = (( self.emissivity * self.p_laser * self.d_wire)
                  * (1/(2 * np.pi * self.sigma_beam ** 2)) 
                  * np.exp((-1/2) * ((x_pos - self.x_offset_beam)
-                 / self.sigma_beam) ** 2 + ((y_pos)/self.sigma_beam)) ** 2) 
+                 / self.sigma_beam) ** 2 + ((y_pos)/self.sigma_beam)) ** 2)
+        elif self.beam_shape == "Point":
+            x_pos = ((i + 0.5) * self.l_segment - (self.l_wire / 2))
+            if np.abs((self.x_offset_beam - x_pos)) < (self.l_segment/2):
+                f = self.emissivity * self.p_laser / self.l_segment
+            else:
+                f  = 0 
         else:
             raise Exception("Unrecognized beam shape")
         return f
