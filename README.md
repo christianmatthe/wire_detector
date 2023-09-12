@@ -18,8 +18,7 @@ You can now import `Wire_detector` or just import the Wire Class via  `from Wire
 
 The temperature distribution of the wire is simulated with `wire_detector.Wire`. The wire is divided into `Wire.n_wire_elements` segments of equal length and the heat flow between these elements is computed with the following equation (for each time step):
 
-$$\Delta f_\mathrm{tot} = f_\mathrm{el} + f_\mathrm{beam} + f_\mathrm{beam\_gas} + f_\mathrm{bb}  + f_\mathrm{laser}\\
-- f_\mathrm{ rad} - f_\mathrm{conduction}-f_\mathrm{background\_gas}$$
+$$\Delta f_\mathrm{tot} = f_\mathrm{el} + f_\mathrm{beam} + f_\mathrm{beam\_gas} + f_\mathrm{bb}  + f_\mathrm{laser} - f_\mathrm{ rad} - f_\mathrm{conduction}-f_\mathrm{background\_gas}$$
 
 This is the heat flow per unit length ($[f]=\rm \frac {Power}{Length}$).
 
