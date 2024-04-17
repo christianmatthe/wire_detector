@@ -8,7 +8,7 @@ from Wire_detector import Wire
 from time import time
 
 start_time = time()
-top_dir = "background_gas_sims_2024-04-17_paper_background_fudge/"
+top_dir = "Tschersich_shape_sims_2024-04-17_paper/"
 os.makedirs(top_dir, exist_ok=True)
 results_dir = top_dir + "results/"
 plot_dir = top_dir + "plots/"
@@ -95,7 +95,7 @@ for l_wire in l_wire_list:
             # Beam related parameters
             # beam_shape="Flat", l_beam = l_beam* 10**-2,
             # phi_beam= (A_beam/ 10**-4) * 10**phi_exp, # Normalized to cm**2
-            beam_shape="Gaussian", sigma_beam=sigma_beam,
+            beam_shape="Tschersich", #sigma_beam=sigma_beam,
             phi_beam= 10**phi_exp, # Normalized to cm**2
             crack_eff = crack_eff,  # approximate
             ###
