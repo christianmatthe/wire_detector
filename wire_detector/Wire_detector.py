@@ -666,8 +666,8 @@ class Wire:
         ax1.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, cracker}$")
         ax1.plot(x_lst, f_background_gas_arr, "--"
                  , label=r"$-F_{backgr. \, gas}$")
-        ax1.plot(x_lst, f_laser_arr, "-"
-                 , label=r"$F_{laser}$")
+        # ax1.plot(x_lst, f_laser_arr, "-"
+        #          , label=r"$F_{laser}$")
 
         ax1.set_ylabel("Heat Flow [W/m]", fontsize = 16)
         ax1.set_xlabel(r"Wire positon [mm]", fontsize = 16)
