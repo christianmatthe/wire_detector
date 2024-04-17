@@ -119,6 +119,9 @@ class Wire:
         bodge=False,
         p_laser=0,
         m_molecular_gas=2 * 1.674 * 10**-27,
+        # for j Tschersich:
+        y0 = 35.17 * 10**-3, # m, wire to HABS distance in CAD)
+        l_eff = 4.0,
     ):
         self.n_wire_elements = n_wire_elements
         self.d_wire = d_wire
@@ -165,6 +168,50 @@ class Wire:
         # Intial State of the Wire
         self.T_distribution = np.ones(self.n_wire_elements) * self.T_background
         self.simulation_time = 0
+        if self.beam_shape == "Tschersich":
+            #NOTE the interpackage dependency
+            from wire_analysis.beamshape import calc_norm_factor, j
+            # Initialize vars
+            self.y0  = y0 # m, wire to HABS distance in CAD)
+            self.l_eff = l_eff
+            def theta(self,x):
+                y0 = self.y0
+                z0 = 0 # simple casse of centetered wire
+                z_center = 0 # simple casse of centetered wire
+                return np.arctan(np.sqrt(x ** 2 + (z_center - z0) ** 2) / y0)
+            
+            norm_factor  = calc_norm_factor(l_eff = self.l_eff,
+                                                    y0 = self.y0)
+
+            def j_norm_linear(self,
+                        x,
+                        norm_factor = norm_factor) -> np.ndarray:
+                """
+                This function serves to integrate the H distribution along a thin rectangle
+                i.e. a projected wire. 
+                DO NOT ENTER LARGE z_lims. Keep them well below mm
+
+                The simplification to a 1D integral greatly speeds up the integration
+                """
+                if norm_factor == None:
+                    # per default calculate noormalization factor
+                    # The function is much faster if norm_factor is provided
+                    norm_factor = calc_norm_factor(l_eff = self.l_eff,
+                                                    y0 = self.y0)
+            
+                j_norm_lin =  ( norm_factor
+                                    # * z_width # will move to f_beam
+                                    * j(theta(x), self.l_eff)
+                                    * 1/(self.y0**2 * (1/np.cos(theta(x))**3))
+                                    # from solid angle to area on plane
+                                        )
+                return j_norm_lin
+
+        return
+    
+    
+
+
 
     def gen_k_heat_cond_function(self) -> None:
         """
@@ -295,6 +342,11 @@ class Wire:
             mask = np.zeros(shape)
             mask[np.abs((self.x_offset_beam - x_positions)) < (self.l_segment / 2)] = 1
             q = mask
+
+        elif self.beam_shape == "Tschersich":
+            q = (self.j_norm_linear(x = x_positions - self.x_offset_beam)
+                * self.l_segment
+                * self.d_wire)
         else:
             raise Exception("Unrecognized beam shape")
 
@@ -386,7 +438,8 @@ class Wire:
     def f_background_gas(self) -> np.ndarray:
         """
         Kinetic energy transfer of residual background gas.
-        Assumes background gas is primarily due to beam gas and all components have the same pumping speeds.
+        Assumes background gas is primarily due to beam gas and all components
+          have the same pumping speeds.
         """
         m = self.m_molecular_gas
 
@@ -416,7 +469,7 @@ class Wire:
                 + self.f_beam_gas()
                 + self.f_bb()
                 - self.f_background_gas()
-                + self.f_laser()
+                # + self.f_laser()
             )
             * self.l_segment
             * time_step
@@ -609,7 +662,7 @@ class Wire:
         f_beam_gas_arr = self.f_beam_gas()
         f_bb_arr = self.f_bb()
         f_background_gas_arr = self.f_background_gas()
-        f_laser_arr = self.f_laser()
+        # f_laser_arr = self.f_laser()
 
         if ax is None:
             fig = plt.figure(0, figsize=(8, 6.5))
@@ -623,7 +676,7 @@ class Wire:
         ax.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
         ax.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, cracker}$")
         ax.plot(x_lst, f_background_gas_arr, "--", label=r"$-F_{backgr. \, gas}$")
-        ax.plot(x_lst, f_laser_arr, "-", label=r"$F_{laser}$")
+        # ax.plot(x_lst, f_laser_arr, "-", label=r"$F_{laser}$")
 
         ax.set_ylabel("Heat Flow [W/m]", fontsize=16)
         ax.set_xlabel(r"Wire positon [mm]", fontsize=16)
