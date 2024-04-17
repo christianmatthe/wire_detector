@@ -679,7 +679,7 @@ class Wire:
         if True:
             h, l = ax1.get_legend_handles_labels()
             sources = [0,3,
-                        4,5,7
+                        4,5
                         ]
             sinks = [1,2
                      ,6
