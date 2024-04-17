@@ -1,15 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 import matplotlib.patches as mpatches
+from scipy import interpolate
 import os
 import dill
-import pandas as pd
-from scipy import interpolate
 
-class Wire():
+
+class Wire:
     """
-    "The Wire object holds information about the state of the wire"
+    The Wire object holds information about the state of the wire.
 
     Parameters
     ----------
@@ -22,7 +21,7 @@ class Wire():
     k_heat_conductivity : `float` or `path`
         Heat conductivity of the wire matertial in (W/(m*K))
         If `float` k_heat_conductivity will be used for all Temperatures.
-        If `str` an interpolation of the Temperature dependence will be 
+        If `str` an interpolation of the Temperature dependence will be
         generated in k_heat_cond_function. Valid strings can
         be found in "gen_k_heat_cond_function"
     a_temperature_coefficient : `float`
@@ -32,7 +31,7 @@ class Wire():
     i_current : `float`
         current passed through the wire in (A)
     T_background : `float`
-        Temperature of "background material" i.e. the holding structure 
+        Temperature of "background material" i.e. the holding structure
         and vacuum chamber
     emissivity : `float`
         emissivity of the wire
@@ -44,17 +43,17 @@ class Wire():
         Length of the wire that is illuminated by the beam. equivalent to beam
         width for a centered beam. (meters)
     sigma_beam : `float`
-        standart deviation of gaussian in case beam shape is "Gaussian" 
+        standart deviation of gaussian in case beam shape is "Gaussian"
         (meters)
     x_offset_beam : `float`
-        offset of the beam center for the wire center along the length of the 
+        offset of the beam center for the wire center along the length of the
         wire (meters)
     c_specific_heat : `float`
         specific heat capacity of wire material. (J/(kg K))
     density : `float`
         density of wire material. (kg/m**3)
     beam_shape : `str`
-        Keyword selection of implemented beam shapes. Currently available are 
+        Keyword selection of implemented beam shapes. Currently available are
         "Gaussian" and "Flat"
     T_base : `array of floats`
         Temperature distribution along wire used at the start of the simulation
@@ -66,7 +65,7 @@ class Wire():
         atoms vs H_2 mmolecules in the beam.
     T_cracker: `Float`
         Temperature of the cracker filament. Used to determine blackbody
-        radiation from the filament that heats the wire if in line of sight. 
+        radiation from the filament that heats the wire if in line of sight.
         (K)
     T_atoms : `Float`
         Temperature of the atoms comming out of the cracker. (K)
@@ -84,45 +83,43 @@ class Wire():
         Total power in laser beam (Watts)
     m_molecular_gas : `Float`
         mass per molecule of gas surrounding the  wire (kg)
-    
+
     """
 
-    def __init__(self,
-                 n_wire_elements = 100,
-                 d_wire = 10 * 10**-6,
-                 l_wire = 5.45 * 10**-2,
-                 k_heat_conductivity = 174,  # Pure Tungsten
-                 k_heat_conductivity_interpolateQ = False,
-                 a_temperature_coefficient = 4.7 * 10**-3,
-                 rho_specific_resistance = 0.052 * 10**-6,
-                 i_current = 1.0 * 10**-3,
-                 T_background = 293.15,
-                 emissivity = 0.2,
-                 E_recombination = 7.1511 * 10**-19, # Joules
-            # https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.121.013001
-            # equivalent to 4.4634 eV
-                 phi_beam = 1 * (10**17),  # Atoms per second in entire beam
-                 l_beam = 25 * 10**-3,
-                 sigma_beam = 2 * 10**-3, # from G. Schwendler Thesis
-                 x_offset_beam = 0, 
-                 c_specific_heat = 133,  # Pure Tungsten
-                 density = 19300,  # Pure Tungsten
-                 beam_shape = "Gaussian",
-                 T_base = None,
-                 taylor_f_rad = False,
-                 crack_eff = 1,
-                 T_cracker = 2300,
-                 T_atoms = 2300,
-                 T_molecules = 293.15,
-                 pressure = 0,
-                 A_cracker = np.pi * (0.5 * 10**-3)**2,  # 1mm diameter disk
-                 dist_cracker_wire = 100 * 10**-3,
-                 bodge = False,
-                 p_laser = 0,
-                 m_molecular_gas = 2 * 1.674 * 10**-27 
-                 # 2 * self.mass_hydrogen
-                 ):
-
+    def __init__(
+        self,
+        n_wire_elements=100,
+        d_wire=10 * 10**-6,
+        l_wire=5.45 * 10**-2,
+        k_heat_conductivity=174,  # Pure Tungsten
+        a_temperature_coefficient=4.7 * 10**-3,
+        rho_specific_resistance=0.052 * 10**-6,
+        i_current=1.0 * 10**-3,
+        T_background=293.15,
+        emissivity=0.2,
+        E_recombination=7.1511 * 10**-19,  # Joules
+        # https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.121.013001
+        # equivalent to 4.4634 eV
+        phi_beam=1 * (10**17),  # Atoms per second in entire beam
+        l_beam=25 * 10**-3,
+        sigma_beam=2 * 10**-3,  # from G. Schwendler Thesis
+        x_offset_beam=0,
+        c_specific_heat=133,  # Pure Tungsten
+        density=19300,  # Pure Tungsten
+        beam_shape="Gaussian",
+        T_base=None,
+        taylor_f_rad=False,
+        crack_eff=1,
+        T_cracker=2300,
+        T_atoms=2300,
+        T_molecules=293.15,
+        pressure=0,
+        A_cracker=np.pi * (0.5 * 10**-3) ** 2,  # 1mm diameter disk
+        dist_cracker_wire=100 * 10**-3,
+        bodge=False,
+        p_laser=0,
+        m_molecular_gas=2 * 1.674 * 10**-27,
+    ):
         self.n_wire_elements = n_wire_elements
         self.d_wire = d_wire
         self.l_wire = l_wire
@@ -153,341 +150,325 @@ class Wire():
         self.p_laser = p_laser
         self.m_molecular_gas = m_molecular_gas
 
-        #Constants
+        # Constants
         self.T_0 = 293.15
         self.sigma_stefan_boltzmann = 5.6704 * 10**-8
         self.k_boltzmann = 1.38064852 * 10**-23
         self.mass_hydrogen = 1.674 * 10**-27
 
-        #derived paramters
-        self.A_cross_section = (np.pi /4) * self.d_wire ** 2
-        self.A_surface = np.pi * self.d_wire * self.l_wire 
+        # derived paramters
+        self.A_cross_section = (np.pi / 4) * self.d_wire**2
+        self.A_surface = np.pi * self.d_wire * self.l_wire
         self.l_segment = self.l_wire / self.n_wire_elements
-
-        #Intial State of the Wire
-        self.T_distribution = np.asarray(
-            [self.T_background for n in range(self.n_wire_elements)] )
-        self.simulation_time = 0
         self.gen_k_heat_cond_function()
 
-    def resistance_segment(self, i, T_dist=None):
-        if T_dist is None:
-            T = self.T_distribution[i]
+        # Intial State of the Wire
+        self.T_distribution = np.ones(self.n_wire_elements) * self.T_background
+        self.simulation_time = 0
+
+    def gen_k_heat_cond_function(self) -> None:
+        """
+        Generate conductivity function. If `self.k_heat_conductivity` is a number,
+        this constant is used. If `self.k_heat_conductivity` is "interpolate_tungsten",
+        a temperature dependent heat conductivity is used based on:
+        https://www.efunda.com/materials/elements/TC_Table.cfm?Element_ID=W
+        The resulting function is stored in `self.k_heat_cond_function`.
+        """
+        if (
+            type(self.k_heat_conductivity) == float
+            or type(self.k_heat_conductivity) == int
+        ):
+            self.k_heat_cond_function = lambda T: self.k_heat_conductivity
+        elif type(self.k_heat_conductivity) is str:
+            if self.k_heat_conductivity == "interpolate_tungsten":
+                T_list = [
+                    1,2,3,4,5,6,7,8,9,10,15,20,30,40,50,60,70,80,90,100,150,200,
+                    250,300,350,400,500,600,800,1000,1200,1400,1600,1800,2000
+                ]
+                k_list = [
+                    1440,2870,4280,5630,6870,7950,8800,9380,9680,9710,
+                    7200,4050,1440,692,427,314,258,229,217,208,192,185,
+                    180,174,167,159,146,137,125,118,112,108,104,101,98
+                ]
+
+                self.k_hc_interpolation = interpolate.interp1d(T_list, k_list, "cubic")
+                self.k_heat_cond_function = self.k_hc_interpolation
+            else:
+                raise Exception('"k_heat_conductivity" is not a valid `str`')
         else:
-            T = T_dist[i]
-        r = ((self.rho_specific_resistance * self.l_segment)
-             /self.A_cross_section) * (1 + self.a_temperature_coefficient
-             * (T - self.T_0))
-        return r
-    
-    def resistance_total(self, T_dist=None):
+            raise Exception('"k_heat_conductivity" is not a valid type')
+
+    def resistance_segment(self, T_dist: np.ndarray) -> np.ndarray:
+        """Return resistance of the wire segments as an array."""
+        return (
+            (self.rho_specific_resistance * self.l_segment) / self.A_cross_section
+        ) * (1 + self.a_temperature_coefficient * (T_dist - self.T_0))
+
+    def resistance_total(self, T_dist: np.ndarray = None) -> float:
+        """Compute resistance of full wire (= sum over all segments)."""
         if T_dist is None:
             T = self.T_distribution
         else:
             T = T_dist
-        R = np.sum([self.resistance_segment(i, T) 
-               for i in range(self.n_wire_elements)])
+        R = np.sum(self.resistance_segment(T))
         return R
 
-    def f_rad(self, i):
-        T = self.T_distribution[i]
-        if self.emissivity == 0:
-            f = 0
-        elif self.taylor_f_rad == True:
-            f = (np.pi * self.d_wire * self.sigma_stefan_boltzmann
-                 * self.emissivity * 4 * self.T_background**3
-                 * (T - self.T_background))
-        else:
-            f = (np.pi * self.d_wire * self.sigma_stefan_boltzmann
-                * self.emissivity * (T**4 - self.T_background**4))  
-        return f
-    
-    def f_el(self, i):
-        f = (self.i_current**2 * self.resistance_segment(i) / self.l_segment)
-        return f
+    def f_rad(self) -> np.ndarray:
+        """Heat transfer per unit length due to blackbody radiation/absorption of wire"""
+        return (
+            np.pi
+            * self.d_wire
+            * self.sigma_stefan_boltzmann
+            * self.emissivity
+            * (self.T_distribution**4 - self.T_background**4)
+        )
 
-    def gen_k_heat_cond_function(self):
-        # Temperature depenent heat conductivity coefficient of Tungsten 
-        # based on 
-        # https://www.efunda.com/materials/elements/TC_Table.cfm?Element_ID=W
-        if (type(self.k_heat_conductivity) == float 
-            or type(self.k_heat_conductivity) == int):
-            self.k_heat_cond_function = lambda T : self.k_heat_conductivity
-        elif type(self.k_heat_conductivity) is str:
-            if self.k_heat_conductivity is "interpolate_tungsten":
-                # top_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep
-                # resource_dir = top_dir + "resources" + os.sep
-                # file_path = (resource_dir 
-                #             + 'Thermal_conductivity_of_Tungsten.csv')
-                # data = pd.read_csv(file_path)
-                # T_list = data['Temperature (K)'].values.tolist()
-                # k_list = data['Thermal Conductivity (W/m-K)'].values.tolist()
-                T_list = [1, 2, 3,4,5,6,7,8,9,10,15,20,30,40,50,60,70,80,90,
-                          100, 150,200,250,300, 350, 400, 500, 600, 800, 1000,
-                          1200,1400, 1600, 1800, 2000]
-                k_list = [1440, 2870, 4280, 5630, 6870, 7950, 8800, 9380, 9680,
-                          9710, 7200, 4050, 1440, 692, 427, 314, 258, 229, 217,
-                          208, 192, 185, 180, 174, 167, 159, 146, 137, 125, 
-                          118, 112, 108, 104, 101, 98]
+    def f_el(self) -> np.ndarray:
+        """Heat transfer per unit length due to electrical current"""
+        return (
+            self.i_current**2
+            * self.resistance_segment(self.T_distribution)
+            / self.l_segment
+        )
 
-                self.k_hc_interpolation = interpolate.interp1d(T_list, k_list,
-                                                          "cubic")
-                self.k_heat_cond_function = self.k_hc_interpolation
-            else:
-                raise Exception('"k_heat_conductivity" is not a valid `str`')
-        else: 
-            raise Exception('"k_heat_conductivity" is not a valid type')
-    
-    
-    def f_conduction(self, i):
-        # Linear interpolation approximation to differential across segment
-        T = self.T_distribution
-        #q: Total Heat flow per square meter out of Wire segment
-        #NOTE: must be impplemented as -f_conduction -> Heat is gained if
-        #      colder than surroundings and lost if Hotter
+    def f_conduction(self) -> np.ndarray:
+        """
+        Heat transfer due to conduction between wire elements. The first and last
+        wire element are connected to an ideal heat sink with temperature
+        `self.T_background`. It must be impplemented as `-f_conduction()` because
+        heat is gained if colder than surroundings and lost if hotter.
+        """
+        shift_left = np.roll(self.T_distribution, 1)
+        shift_right = np.roll(self.T_distribution, -1)
+        shift_left[0] = self.T_background
+        shift_right[-1] = self.T_background
 
-        #Boundary Conditions:
-        if i == 0:
-            q = (- self.k_heat_cond_function(T[i]) 
-                 * (2 * (self.T_background - T[i]) + (T[i+1] - T[i]))
-                 / self.l_segment)
-        elif i == self.n_wire_elements - 1:
-            q = (- self.k_heat_cond_function(T[i]) 
-                 * (2 * (self.T_background - T[i]) + (T[i-1] - T[i]))
-                 / self.l_segment)       
-        else:
-            q = (- self.k_heat_cond_function(T[i]) 
-                 * ((T[i-1] - T[i]) + (T[i+1] - T[i])) 
-                 / self.l_segment)
-        #multiply with area and divide by l_segment to get watts per m
-        # wire length to get f
-        f = q * self.A_cross_section / self.l_segment 
-        return f
+        # Difference of ith wire element with (i-1)th or (i+1)th element
+        diff_left = shift_left - self.T_distribution
+        diff_right = shift_right - self.T_distribution
+        # Multiply the left and right element by two, because the distance
+        # to the heat sink is only half the distance between wire elements
+        diff_left[0] *= 2
+        diff_right[-1] *= 2
 
-    def f_beam(self, i):
+        # Numeric approximation of second derivative
+        # q: Total Heat flow per square meter out of Wire segment
+        q = -self.k_heat_cond_function(self.T_distribution) * (
+            (diff_left + diff_right) / self.l_segment
+        )
+        # multiply with area and divide by l_segment to get watts per m
+        # wire length to get heat flow
+        return q * self.A_cross_section / self.l_segment
+
+    def f_beam(self) -> np.ndarray:
+        """
+        Heat Conduction due the recombination of hydrogen atoms.
+        Three different beam shapes are available:
+        - "Flat": The distribution of atoms is uniformly distributed over a disk with
+            radius self.l_beam/2
+        - "Gaussian": Gaussian distribution with standard deviation self.sigma_beam
+        - "Point": Only a single element is heated by the beam.
+        """
+        shape = len(self.T_distribution)
+        x_positions = (np.arange(shape) + 0.5) * self.l_segment - (self.l_wire / 2)
+
         if self.beam_shape == "Flat":
-            # flat circular beam profile
-            x_pos = ((i + 0.5) * self.l_segment - (self.l_wire / 2))
-            if ((-self.l_beam / 2) + self.x_offset_beam < x_pos 
-                and x_pos < (self.l_beam / 2) + self.x_offset_beam): 
-                f = ((2 * self.phi_beam * self.d_wire * self.E_recombination) 
-                 /(np.pi * self.l_beam**2))
-            else:
-                f = 0
+            mask = np.zeros(shape)
+            mask[abs(self.x_offset_beam - x_positions) < self.l_beam / 2] = 1
+            q = mask / sum(mask)
+            q *= (self.d_wire * self.l_beam) / (np.pi * self.l_beam**2)
+
         elif self.beam_shape == "Gaussian":
-            # Gaussian Profile
-            x_pos = ((i + 0.5) * self.l_segment - (self.l_wire / 2))
-            y_pos = 0
-            f = (2 * self.d_wire * self.E_recombination
-                 * self.phi_beam * (1/(2 * np.pi * self.sigma_beam ** 2)) 
-                 * np.exp((-1/2) * ((x_pos - self.x_offset_beam)
-                 / self.sigma_beam) 
-                 ** 2 + ((y_pos)/self.sigma_beam)) ** 2) 
-        # Introduce point shaped beam that delivers a prescribed amount of
-        # power to a single wire element
+            q = (
+                1
+                / (2 * np.pi * self.sigma_beam**2)
+                * np.exp(
+                    -((x_positions - self.x_offset_beam) ** 2)
+                    / (2 * (self.sigma_beam) ** 2)
+                )
+                * self.l_segment
+                * self.d_wire
+            )
+            # q *= (self.d_wire * self.sigma_beam) / (np.pi * self.sigma_beam**2)
+
         elif self.beam_shape == "Point":
-            x_pos = ((i + 0.5) * self.l_segment - (self.l_wire / 2))
-            if np.abs((self.x_offset_beam - x_pos)) < (self.l_segment/2):
-                f = self.phi_beam * (self.E_recombination/2) / self.l_segment
-            else:
-                f  = 0
+            mask = np.zeros(shape)
+            mask[np.abs((self.x_offset_beam - x_positions)) < (self.l_segment / 2)] = 1
+            q = mask
         else:
             raise Exception("Unrecognized beam shape")
-        return f
 
-    def f_laser(self, i):
+        return self.phi_beam * self.E_recombination * q
+
+    def f_laser(self) -> np.ndarray:
+        """Deprecated."""
+        print("Deprecated. Use f_beam instead.")
+        shape = len(self.T_distribution)
+        x_positions = (np.arange(len(self.T_distribution)) + 0.5) * self.l_segment - (
+            self.l_wire / 2
+        )
+
         if self.beam_shape == "Flat":
             # flat circular profile
-            x_pos = ((i + 0.5) * self.l_segment - (self.l_wire / 2))
-            if ((-self.l_beam / 2) + self.x_offset_beam < x_pos 
-                and x_pos < (self.l_beam / 2) + self.x_offset_beam): 
-                f = (( self.emissivity * self.p_laser * self.d_wire) 
-                 /(np.pi * (self.l_beam/2)**2))
-            else:
-                f = 0
+            mask = np.zeros(shape)
+            mask[
+                (
+                    ((-self.l_beam / 2) + self.x_offset_beam < x_positions)
+                    & (x_positions < (self.l_beam / 2) + self.x_offset_beam)
+                )
+            ] = 1
+            return mask * (
+                (self.emissivity * self.p_laser * self.d_wire)
+                / (np.pi * (self.l_beam / 2) ** 2)
+            )
+
         elif self.beam_shape == "Gaussian":
-            # Gaussian Profile
-            x_pos = ((i + 0.5) * self.l_segment - (self.l_wire / 2))
-            y_pos = 0
-            f = (( self.emissivity * self.p_laser * self.d_wire)
-                 * (1/(2 * np.pi * self.sigma_beam ** 2)) 
-                 * np.exp((-1/2) * ((x_pos - self.x_offset_beam)
-                 / self.sigma_beam) ** 2 + ((y_pos)/self.sigma_beam)) ** 2)
+            return (
+                (self.emissivity * self.p_laser * self.d_wire)
+                * (1 / (2 * np.pi * self.sigma_beam**2))
+                * np.exp(
+                    (-1 / 2)
+                    * ((x_positions - self.x_offset_beam) / self.sigma_beam) ** 2
+                )
+            )
+
         elif self.beam_shape == "Point":
-            x_pos = ((i + 0.5) * self.l_segment - (self.l_wire / 2))
-            if np.abs((self.x_offset_beam - x_pos)) < (self.l_segment/2):
-                f = self.emissivity * self.p_laser / self.l_segment
-            else:
-                f  = 0 
+            mask = np.zeros(shape)
+            mask[np.abs((self.x_offset_beam - x_positions)) < (self.l_segment / 2)] = 1
+            return self.emissivity * self.p_laser / self.l_segment
+
         else:
             raise Exception("Unrecognized beam shape")
-        return f
 
-    def f_bb(self, i):
-        # Blackbody radiation from cracker. diameter 1mm stefan boltzmann 
-        # times wire area and emissivity as absorption coefficient
-        # (assume flat absorbtion profile)
-
-        # flat circular beam profile
-        x_pos = ((i + 0.5) * self.l_segment - (self.l_wire / 2))
+    def f_bb(self) -> np.ndarray:
+        """Heat absorbed from the the black body radiation of the cracker."""
+        x_positions = (np.arange(len(self.T_distribution)) + 0.5) * self.l_segment - (
+            self.l_wire / 2
+        )
         A_sphere = 4 * np.pi * self.dist_cracker_wire**2
         A_incident = self.l_beam * self.d_wire
-        if ((-self.l_beam / 2) + self.x_offset_beam < x_pos
-            and x_pos < (self.l_beam / 2) + self.x_offset_beam): 
-            f = (self.emissivity # Note: Emissivity = absorbtivity of wire
-                 * self.sigma_stefan_boltzmann * self.T_cracker**4
-                 * self.A_cracker * (A_incident/A_sphere) 
-                 / self.l_beam) # normalization to length density
-        else:
-            f = 0
+        mask = np.zeros(len(x_positions))
+        mask[
+            (
+                ((-self.l_beam / 2) + self.x_offset_beam < x_positions)
+                & (x_positions < (self.l_beam / 2) + self.x_offset_beam)
+            )
+        ] = 1
+
+        f = (
+            mask
+            * self.emissivity  # Note: Emissivity = absorbtivity of wire
+            * self.sigma_stefan_boltzmann
+            * (self.T_cracker**4 - self.T_background**4)
+            * self.A_cracker
+            * (A_incident / A_sphere)
+            / self.l_beam
+        )  # normalization to length density
+
         return f
 
-
-
-    def f_beam_gas(self, i):
-        n_atoms = self.f_beam(i) / (self.E_recombination/2)
-        n_molecules = (n_atoms/2) * (1/self.crack_eff - 1)
-        f_atoms = (n_atoms * (3/2) * self.k_boltzmann 
-                   * (self.T_atoms - self.T_distribution[i]))
-        f_molecules = (n_molecules * (3/2) * self.k_boltzmann 
-                   * (self.T_molecules - self.T_distribution[i]))
+    def f_beam_gas(self) -> np.ndarray:
+        """Kinetic energy transfer from the gas molecules and atoms of the beam."""
+        n_atoms = self.f_beam() / (self.E_recombination / 2)
+        n_molecules = (n_atoms / 2) * (1 / self.crack_eff - 1)
+        f_atoms = (
+            n_atoms * (3 / 2) * self.k_boltzmann * (self.T_atoms - self.T_distribution)
+        )
+        f_molecules = (
+            n_molecules
+            * (3 / 2)
+            * self.k_boltzmann
+            * (self.T_molecules - self.T_distribution)
+        )
         f = f_atoms + f_molecules
         return f
-    
-    def f_background_gas(self, i):
-        # (average) mass of background Gas. Assumes background gas is primarily 
-        # due to beam gas and all components have the same pumping speeds
-        #m = 2 * self.mass_hydrogen
+
+    def f_background_gas(self) -> np.ndarray:
+        """
+        Kinetic energy transfer of residual background gas.
+        Assumes background gas is primarily due to beam gas and all components have the same pumping speeds.
+        """
         m = self.m_molecular_gas
-        # m = (self.mass_hydrogen * self.crack_eff 
-        #     + 2 * self.mass_hydrogen * (1 - self.crack_eff))
-        # calculate power density
-        q = ((self.pressure/4) * np.sqrt(3 * self.k_boltzmann / m) 
-           * (self.T_distribution[i] - self.T_background)
-           /np.sqrt(self.T_background))
-        # multiply with total outward surface area of wire segment 
-        f = q * np.pi * self.d_wire *self.l_segment / self.l_segment
 
-        #print("f:", f)
-        #print("Tdist[{}]:".format(i), self.T_distribution[i])
-        if np.isnan(q):
-            print("f:", f)
-            print("Tdist[i]:", self.T_distribution[i])
-            raise ValueError('q_background_gas is NAN')
+        q = (
+            (self.pressure / 4)
+            * np.sqrt(3 * self.k_boltzmann / m)
+            * (self.T_distribution - self.T_background)
+            / np.sqrt(self.T_background)
+        )
+
+        # multiply with total outward surface area of wire segment
+        f = q * np.pi * self.d_wire * self.l_segment / self.l_segment
+
         return f
 
-    def f_conduction_bodge(self, i):
-        # Linear interpolation approximation to differential across segment
-        T = self.T_distribution
-        #q: Total Heat flow per square meter out of Wire segment
-        #NOTE: must be impplemented as -f_conduction -> Heat is gained if
-        #      colder than surroundings and lost if Hotter
-        factor = 100
-        #Boundary Conditions:
-        if i == 0:
-            q = (- self.k_heat_cond_function(T[i]) 
-                 * (2 * (self.T_background - T[i]) 
-                 + (T[i+1] - T[i])) * factor
-                 / self.l_segment)
-        elif i == self.n_wire_elements - 1:
-            q = (- self.k_heat_cond_function(T[i]) 
-                 * (2 *(self.T_background - T[i]) 
-                 + (T[i-1] - T[i])) * factor
-                 / self.l_segment)       
-        else:
-            # Increase heat conductivity in ends by 100x for illustration
-            if (i < 25 or i >self.n_wire_elements - 1 - 25):
-                q = (- factor * self.k_heat_cond_function(T[i]) 
-                     * ((T[i-1] - T[i]) 
-                     + (T[i+1] - T[i])) / self.l_segment)
-            elif i == 25:
-                q = (- self.k_heat_cond_function(T[i]) 
-                    * (factor *(T[i-1] - T[i]) 
-                    + (T[i+1] - T[i])) / self.l_segment)
-            elif i == self.n_wire_elements - 1 - 25:
-                q = (- self.k_heat_cond_function(T[i]) 
-                    * ((T[i-1] - T[i]) 
-                    + factor * (T[i+1] - T[i])) / self.l_segment)
-            else:
-                q = (- self.k_heat_cond_function(T[i]) * ((T[i-1] - T[i]) 
-                    + (T[i+1] - T[i])) / self.l_segment)
-        #multiply with area and divide by l_segment to get watts per m
-        # wire length to get f
-        f = q * self.A_cross_section / self.l_segment 
-        return f
+    def temperature_change(self, time_step: float) -> np.ndarray:
+        """
+        Compute temperature change of single time step.
+        Raises an error, if the temperature distribution does not converge. In this case a smaller time step in the simulation is necessary.
+        """
+        delta_T = (
+            (
+                self.f_el()
+                - self.f_rad()
+                - self.f_conduction()
+                + self.f_beam()
+                + self.f_beam_gas()
+                + self.f_bb()
+                - self.f_background_gas()
+                + self.f_laser()
+            )
+            * self.l_segment
+            * time_step
+        ) / (
+            self.density * self.A_cross_section * self.l_segment * self.c_specific_heat
+        )
+        if not np.all(np.isfinite(delta_T)):
+            raise ValueError(
+                "The temerature distribution diverges. Use smaller time steps."
+            )
 
-    def temperature_change(self, i, time_step):
-        delta_T = (((self.f_el(i) - self.f_rad(i) - self.f_conduction(i)
-                     + self.f_beam(i) + self.f_beam_gas(i) + self.f_bb(i)
-                     - self.f_background_gas(i) + self.f_laser(i)
-                     ) 
-                     * self.l_segment * time_step) 
-                     / (self.density * self.A_cross_section * self.l_segment 
-                     * self.c_specific_heat))
-        # deprecated             
-        if self.bodge == True:
-            if (i < (25+1) or i >self.n_wire_elements - 1 - (25+1)):
-                delta_T = (((0*self.f_el(i) - self.f_rad(i) 
-                        - self.f_conduction_bodge(i)
-                        + self.f_beam(i) + self.f_beam_gas(i) + self.f_bb(i)) 
-                        * self.l_segment * time_step) 
-                        / (self.density * self.A_cross_section * self.l_segment 
-                        * 100* self.c_specific_heat))
-            else:
-                delta_T = (((self.f_el(i) - self.f_rad(i) 
-                        - self.f_conduction_bodge(i)
-                        + self.f_beam(i) + self.f_beam_gas(i) + self.f_bb(i)) 
-                        * self.l_segment * time_step) 
-                        / (self.density * self.A_cross_section * self.l_segment 
-                        * self.c_specific_heat))
         return delta_T
 
-    def simulation_step(self, time_step = 0.0001):
-        T_dist_new = np.asarray([self.T_distribution[i] 
-                        + self.temperature_change(i, time_step)
-                        for i in range(self.n_wire_elements)])
-        self.T_distribution = T_dist_new
+    def simulation_step(self, time_step: float) -> None:
+        """Compute temperature after single simulation step."""
+        self.T_distribution = self.T_distribution + self.temperature_change(time_step)
         self.simulation_time = self.simulation_time + time_step
-        return None
 
-    # TODO Implement Check if previous simulation exists and load from file
-    # TODO Dynamic step syste based on ratio of heat flow and heat capacity
-    def simulate(self, n_steps = 15000, record_steps = 150,
-                 time_step = 0.001):
+    def simulate(self, n_steps: int = 15000, record_steps: int = 150, time_step: float = 0.001) -> None:
+        """ 
+        Simulates temperature of wire segments.
+        n_steps : number of simulation steps
+        record_steps : number of steps to store the intermediate temperature distribtutions
+        time_step : time step in seconds
+        """
         self.record_dict = {}
         self.record_dict["T_distribution"] = np.zeros(
-            (record_steps + 1, self.n_wire_elements))
+            (record_steps + 1, self.n_wire_elements)
+        )
         self.record_dict["time"] = np.zeros(record_steps + 1)
 
-        #Intial State of the Wire
+        # Intial State of the Wire
         self.simulation_time = 0
         if self.T_base is None:
-            self.T_distribution = (np.asarray([self.T_background 
-                                for n in range(self.n_wire_elements)]))
+            self.T_distribution = np.asarray(
+                [self.T_background for n in range(self.n_wire_elements)]
+            )
         else:
             self.T_distribution = self.T_base
-        
 
         for i in range(n_steps + 1):
-            if i in range(0, n_steps + 1, (n_steps // record_steps)):  
+            if i in range(0, n_steps + 1, (n_steps // record_steps)):
                 self.record_dict["T_distribution"][
-                    i // ((n_steps // record_steps))] = (
-                    self.T_distribution)
+                    i // ((n_steps // record_steps))
+                ] = self.T_distribution
                 self.record_dict["time"][
-                    i // ((n_steps // record_steps))] = (
-                    self.simulation_time)
-            self.simulation_step(time_step = time_step)
-        return None
+                    i // ((n_steps // record_steps))
+                ] = self.simulation_time
+            self.simulation_step(time_step=time_step)
 
-    # Plan:
-    # write functions to reconstruct wire properties from pickeld record
-    # without resimulation
-    # (Interpolate between recorded steps?)
-    # resistance, signal, x_lst
-    # 
-    # Write default plot and animation functions
-
-    def save(self, filename):
+    def save(self, filename: str) -> None:
+        """ Save this object as pickled file. """
         with open(filename + ".pkl", "wb") as f:
             dill.dump(self, f)
 
@@ -496,10 +477,12 @@ class Wire():
             wire = dill.load(f)
         return wire
 
-    def U_wire(self, i):
-        # Calculate volatage drop over wire
-        U = (self.resistance_total(self.record_dict["T_distribution"][i])
-                   * self.i_current)
+    def U_wire(self, i: int) -> float:
+        """ Calculate volatage drop over ith wire element. """
+        U = (
+            self.resistance_total(self.record_dict["T_distribution"][i])
+            * self.i_current
+        )
         return U
 
     def integrate_f(self, f_func):
@@ -509,328 +492,178 @@ class Wire():
         power = np.sum(arr * self.l_segment)
         return power
 
+    def plot_signal(self, ax=None):
+        """ Plot Temperature over Wire for start and end of simulation. """
 
-    def plot_signal(self, filename="plots/signal_plot"):
-        # Plot Temperature over Wire for start and end of simulation
-        # Plot Temperature over Wire
-        plt.figure(0, figsize=(8,6.5))
-        ax1 = plt.gca()
+        if ax is None:
+            fig = plt.figure(0, figsize=(8, 6.5))
+            ax = plt.gca()
 
-        x_lst = [1000 * ((i + 0.5) * self.l_segment - (self.l_wire / 2))
-                for i in range(self.n_wire_elements)]
+        x_lst = [
+            1000 * ((i + 0.5) * self.l_segment - (self.l_wire / 2))
+            for i in range(self.n_wire_elements)
+        ]
         T_beam_off = self.record_dict["T_distribution"][0]
         T_beam_on = self.record_dict["T_distribution"][-1]
         T_lst = [T_beam_off, T_beam_on]
 
         R_arr = np.zeros(2)
-        for i,T_dist in enumerate(T_lst):
-            self.T_distribution = T_dist
-            R_arr[i] = self.resistance_total()
-        
+        for i, T_dist in enumerate(T_lst):
+            R_arr[i] = self.resistance_total(T_dist)
+
         U_delta = (R_arr[1] - R_arr[0]) * self.i_current
-        signal = (R_arr[1] - R_arr[0])/R_arr[0]
+        signal = (R_arr[1] - R_arr[0]) / R_arr[0]
 
-        ax1.plot(x_lst, T_lst[0] - 273.15, "-", label=r"Beam Off, " 
-                 + "R = {:.3f}".format(R_arr[0]) + r"$\Omega$")
-        ax1.plot(x_lst, T_lst[1] - 273.15, "-", label=r"Beam On, " 
-                 + "R = {:.3f}".format(R_arr[1]) + r"$\Omega$")
-                 
-        ax1.set_ylabel("Temperature [°C]")
-        ax1.set_xlabel(r"wire positon [mm]")
-        plt.title(r"$d_{wire}$ = " + "{}".format(self.d_wire * 10**6) 
-                  + r"$\mu m$" +", I = " + "{}".format(self.i_current * 10**3)
-                  + r"$mA$" + r", $\phi_{beam}$ = 10^" + "{:.2f}".format(
-                  np.log10(self.phi_beam)))
-        plt.grid(True)
+        ax.plot(
+            x_lst,
+            T_lst[0] - 273.15,
+            "-",
+            label=r"Beam Off, " + "R = {:.3f}".format(R_arr[0]) + r"$\Omega$",
+        )
+        ax.plot(
+            x_lst,
+            T_lst[1] - 273.15,
+            "-",
+            label=r"Beam On, " + "R = {:.3f}".format(R_arr[1]) + r"$\Omega$",
+        )
+
+        ax.set_ylabel("Temperature [°C]")
+        ax.set_xlabel(r"wire positon [mm]")
+        ax.set_title(
+            r"$d_{wire}$ = "
+            + "{}".format(self.d_wire * 10**6)
+            + r"$\mu m$"
+            + ", I = "
+            + "{}".format(self.i_current * 10**3)
+            + r"$mA$"
+            + r", $\phi_{beam}$ = 10^"
+            + "{:.2f}".format(np.log10(self.phi_beam))
+        )
+        ax.grid(True)
         # get existing handles and labels
-        handles, labels = plt.gca().get_legend_handles_labels()
+        handles, labels = ax.get_legend_handles_labels()
         # create a patch with no color
-        empty_patch = mpatches.Patch(color='none', label='Extra label') 
+        empty_patch = mpatches.Patch(color="none", label="Extra label")
         handles.append(empty_patch)
-        labels.append("Signal: {:.2%}, ".format(signal) + r"$\Delta U$" 
-                      + " = {:.2f}".format(U_delta *10 **3) + " mV, ")
-        plt.legend(handles, labels, shadow=True)
-        
-        
-        format_im = 'png' #'pdf' or png
-        dpi = 300
-        plt.savefig(filename + '.{}'.format(format_im),
-                    format=format_im, dpi=dpi)
-        ax1.cla()
+        labels.append(
+            "Signal: {:.2%}, ".format(signal)
+            + r"$\Delta U$"
+            + " = {:.2f}".format(U_delta * 10**3)
+            + " mV, "
+        )
+        ax.legend(handles, labels, shadow=True)
+        return ax
 
-    def plot_R_over_t(self, filename="plots/R_over_t"):
+    def plot_R_over_t(self, ax=None):
         # Plot Resistance over time
-        plt.figure(0, figsize=(8,6.5))
-        ax1=plt.gca()
+        if ax is None:
+            fig = plt.figure(0, figsize=(8, 6.5))
+            ax = plt.gca()
 
         t_lst = self.record_dict["time"]
         steps = len(t_lst)
-        R_lst = [self.resistance_total(self.record_dict["T_distribution"][i])
-                 for i in range(steps)]
+        R_lst = [
+            self.resistance_total(self.record_dict["T_distribution"][i])
+            for i in range(steps)
+        ]
 
-        R_tau = R_lst[0] + (R_lst[-1] - R_lst[0])*(1 - 1/np.exp(1))
+        R_tau = R_lst[0] + (R_lst[-1] - R_lst[0]) * (1 - 1 / np.exp(1))
         R_tau_lst = [R_tau for i in range(len(t_lst))]
-        R_95 = R_lst[0] + (R_lst[-1] - R_lst[0])*0.95
+        R_95 = R_lst[0] + (R_lst[-1] - R_lst[0]) * 0.95
         R_95_lst = [R_95 for i in range(len(t_lst))]
         # calculate time at which these are reached
         t_tau = t_lst[np.argmin(np.absolute(R_lst - R_tau))]
         t_95 = t_lst[np.argmin(np.absolute(R_lst - R_95))]
-        
-        ax1.plot(t_lst, R_lst, "-", label="Resistance")
-        ax1.plot(t_lst, R_tau_lst, "-",
-                 label=r"$\Delta R \cdot$(1 - 1/e)" + ", t = {:.3f}".format(t_tau))
-        ax1.plot(t_lst, R_95_lst, "-",
-                 label=r"$0.95 \cdot \Delta R$" + ", t = {:.3f}".format(t_95))
-        ax1.set_ylabel(r"Resistance [$\Omega$]")
-        ax1.set_xlabel(r"time [s]")
+
+        ax.plot(t_lst, R_lst, "-", label="Resistance")
+        ax.plot(
+            t_lst,
+            R_tau_lst,
+            "-",
+            label=r"$\Delta R \cdot$(1 - 1/e)" + ", t = {:.3f}".format(t_tau),
+        )
+        ax.plot(
+            t_lst,
+            R_95_lst,
+            "-",
+            label=r"$0.95 \cdot \Delta R$" + ", t = {:.3f}".format(t_95),
+        )
+        ax.set_ylabel(r"Resistance [$\Omega$]")
+        ax.set_xlabel(r"time [s]")
         plt.grid(True)
         plt.legend(shadow=True)
 
-        format_im = 'png' #'pdf' or png
-        dpi = 300
-        plt.savefig(filename + '.{}'.format(format_im),
-                    format=format_im, dpi=dpi)
-        ax1.cla()
+        return ax
 
-    def plot_heat_flow(self, filename="plots/heat_flow", log_y = False):
-        # Calculate endstate of heat flow
-        x_lst = [1000 * ((i + 0.5) * self.l_segment - (self.l_wire / 2))
-                for i in range(self.n_wire_elements)]
+    def plot_heat_flow(self, ax=None, log_y: bool = False):
+        """ Calculate endstate of heat flow """
+        x_lst = [
+            1000 * ((i + 0.5) * self.l_segment - (self.l_wire / 2))
+            for i in range(self.n_wire_elements)
+        ]
         self.T_distribution = self.record_dict["T_distribution"][-1]
-        f_el_arr = [self.f_el(j) for j in range(self.n_wire_elements)]
-        f_conduction_arr = [self.f_conduction(j) 
-                            for j in range(self.n_wire_elements)]
-        f_rad_arr = [self.f_rad(j) for j in range(self.n_wire_elements)]
-        f_beam_arr = [self.f_beam(j) for j in range(self.n_wire_elements)]
-        f_beam_gas_arr = [self.f_beam_gas(j) 
-                          for j in range(self.n_wire_elements)]
-        f_bb_arr = [self.f_bb(j) for j in range(self.n_wire_elements)]
-        f_background_gas_arr = [self.f_background_gas(j)
-                                for j in range(self.n_wire_elements)]
-        f_laser_arr = [self.f_laser(j)
-                                for j in range(self.n_wire_elements)]
+        f_el_arr = self.f_el()
+        f_conduction_arr = self.f_conduction()
+        f_rad_arr = self.f_rad()
+        f_beam_arr = self.f_beam()
+        f_beam_gas_arr = self.f_beam_gas()
+        f_bb_arr = self.f_bb()
+        f_background_gas_arr = self.f_background_gas()
+        f_laser_arr = self.f_laser()
 
-        f_conduction_bodge_arr = [self.f_conduction_bodge(j) 
-                        for j in range(self.n_wire_elements)]
+        if ax is None:
+            fig = plt.figure(0, figsize=(8, 6.5))
+            ax = plt.gca()
 
-        # Plot endstate of heat flow
-        plt.figure(0, figsize=(8,6.5))
-        ax1=plt.gca()
+        ax.plot(x_lst, f_el_arr, "-", label=r"$F_{el}$")
 
-        # if self.bodge == True:
-        #     for i in range(0,25):
-        #         f_el_arr[i] = 0
-        #     for i in range(self.n_wire_elements - 25,self.n_wire_elements):
-        #         f_el_arr[i] = 0
-        ax1.plot(x_lst, f_el_arr, "-", label=r"$F_{el}$")
-        #bodge_start
-        try:
-            if self.bodge == True:
-                ax1.plot(x_lst, f_conduction_bodge_arr, "--"
-                        , label=r"$F_{\mathrm{cond. piecewise}}$")
-            else:
-                ax1.plot(x_lst, f_conduction_arr, "--",
-                         label=r"$-F_{conduction}$")
-        except:
-            #bodge_end
-            ax1.plot(x_lst, f_conduction_arr, "--", label=r"$-F_{conduction}$")
-        ax1.plot(x_lst, f_rad_arr, "--", label=r"$-F_{rad}$")
-        ax1.plot(x_lst, f_beam_arr, "-", label=r"$F_{beam}$")
-        ax1.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
-        ax1.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, cracker}$")
-        ax1.plot(x_lst, f_background_gas_arr, "--"
-                 , label=r"$-F_{backgr. \, gas}$")
-        ax1.plot(x_lst, f_laser_arr, "-"
-                 , label=r"$F_{laser}$")
+        ax.plot(x_lst, f_conduction_arr, "--", label=r"$-F_{conduction}$")
+        ax.plot(x_lst, f_rad_arr, "--", label=r"$-F_{rad}$")
+        ax.plot(x_lst, f_beam_arr, "-", label=r"$F_{beam}$")
+        ax.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
+        ax.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, cracker}$")
+        ax.plot(x_lst, f_background_gas_arr, "--", label=r"$-F_{backgr. \, gas}$")
+        ax.plot(x_lst, f_laser_arr, "-", label=r"$F_{laser}$")
 
-        ax1.set_ylabel("Heat Flow [W/m]", fontsize = 16)
-        ax1.set_xlabel(r"Wire positon [mm]", fontsize = 16)
-        ax1.tick_params(axis='both', which='major', labelsize=12)
-        plt.grid(True)
-        plt.legend(shadow=True)
+        ax.set_ylabel("Heat Flow [W/m]", fontsize=16)
+        ax.set_xlabel(r"Wire positon [mm]", fontsize=16)
+        ax.tick_params(axis="both", which="major", labelsize=12)
+        ax.grid(True)
+        ax.legend(shadow=True)
 
-        #fancy legend:
+        # fancy legend:
         if True:
-            h, l = ax1.get_legend_handles_labels()
-            sources = [0,3,
-                        4,5,7
-                        ]
-            sinks = [1,2
-                     ,6
-                     ]
-            #TOP legend
-            # l1 = ax1.legend([h[i] for i in sources], [l[i] for i in sources],
-            #    #shadow = True,
-            #    #framealpha = 0.5,
-            #    loc = "lower left",
-            #    bbox_to_anchor=(0, 1),
-            #    fontsize = "large",
-            #    title = "Heat Sources:",
-            #    ncol = 2
-            #    )
-            # plt.gca().add_artist(l1)
-            # l2 = ax1.legend([h[i] for i in sinks], [l[i] for i in sinks],
-            #    #shadow = True,
-            #    #framealpha = 0.5,
-            #    loc = "lower right",
-            #    bbox_to_anchor=(1, 1),
-            #    fontsize = "large",
-            #    title = "Heat Sinks:",
-            #    ncol = 2
-            #    )
-            #Right Side Legend
-            l1 = ax1.legend([h[i] for i in sources], [l[i] for i in sources],
-               #shadow = True,
-               #framealpha = 0.5,
-               loc = "upper left",
-               bbox_to_anchor=(1, 1),
-               fontsize = 14,
-               title = "Heat Sources:",
-               title_fontsize = 14,
-               ncol = 1
-               )
-            plt.gca().add_artist(l1)
-            ax1.legend([h[i] for i in sinks], [l[i] for i in sinks],
-               #shadow = True,
-               #framealpha = 0.5,
-               loc = "upper left",
-               bbox_to_anchor=(1, 0.60),
-               fontsize = 14,
-               title = "Heat Sinks:",
-               title_fontsize = 14,
-               ncol = 1
-               )
-            plt.tight_layout()
+            h, l = ax.get_legend_handles_labels()
+            sources = [0, 3, 4, 5, 7]
+            sinks = [1, 2, 6]
+
+            l1 = ax.legend(
+                [h[i] for i in sources],
+                [l[i] for i in sources],
+                # shadow = True,
+                # framealpha = 0.5,
+                loc="upper left",
+                bbox_to_anchor=(1, 1),
+                fontsize=14,
+                title="Heat Sources:",
+                title_fontsize=14,
+                ncol=1,
+            )
+            ax.add_artist(l1)
+            ax.legend(
+                [h[i] for i in sinks],
+                [l[i] for i in sinks],
+                # shadow = True,
+                # framealpha = 0.5,
+                loc="upper left",
+                bbox_to_anchor=(1, 0.60),
+                fontsize=14,
+                title="Heat Sinks:",
+                title_fontsize=14,
+                ncol=1,
+            )
 
         if log_y == True:
-            ax1.set_yscale("log")
-            if filename == "plots/heat_flow":
-                filename= "plots/log_heat_flow"
+            ax.set_yscale("log")
 
-        format_im = 'png' #'pdf' or png
-        dpi = 300
-        plt.savefig(filename + '.{}'.format(format_im),
-                    format=format_im, dpi=dpi)
-        ax1.cla()
-
-            
-def pressure_chamber(phi_beam, crack_eff):
-    #calculate flow in sccm
-    sccm = 4.478 * 10**17
-    mbar_to_Pa = 100
-    flow_sccm = phi_beam * (1/crack_eff) / sccm
-    #Empirical Formula based on elog of Nov 23 2148 10 sccm
-    p = (flow_sccm * 1.4 *10**-8 + 5 * 10**-10) * mbar_to_Pa
-    return p 
-
-
-if __name__ == "__main__":
-    # Alexandre 96 Paper values
-    # wire = Wire(n_wire_elements = 100, k_heat_conductivity = 170,
-    #             i_current = 0.1 * 10**-3, d_wire = 10 * 10**-6,
-    #             emissivity = 0.3, l_wire=5*10**-2, 
-    #             rho_specific_resistance = 668 * (np.pi*((10/2)*10**-6)**2),
-    #             beam_shape="Flat"
-    # )
-
-    # # AG Pohl values (Beam is not accurate)
-    # i_current = 1 * 10**-3
-    # d_wire = 10 * 10**-6
-    # #taylor_f_rad_list = [False, True]
-    # wire = Wire(n_wire_elements = 100, k_heat_conductivity = 174,
-    #                     i_current = i_current, d_wire = d_wire,
-    #                     emissivity = 0.2, l_wire=5.45*10**-2,
-    #                     beam_shape="Gaussian", sigma_beam=6*10**-3, 
-    #                     phi_beam=10**17
-    #                     #T_base=wire_no_beam.record_dict["T_distribution"][-1]
-    #                     ###
-    #                     #,taylor_f_rad=taylor_f_rad
-    #         ) 
-    # n_steps = 15000
-    # record_steps = 200
-    # time_step = 0.001
-    # wire.simulate(n_steps=n_steps, record_steps=record_steps,
-    #             time_step=time_step)
-
-
-
-    ########################### AG Pohl values (Beam is not accurate)
-    i_current = 1 * 10**-3
-    d_wire = 20 * 10**-6
-    taylor_f_rad_list = [False, True]
-    for taylor_f_rad in taylor_f_rad_list:
-        wire_no_beam = Wire(n_wire_elements = 100, k_heat_conductivity = 174,
-                    i_current = i_current, d_wire = d_wire,
-                    emissivity = 0.2, l_wire=5.45*10**-2,
-                    ###
-                    phi_beam=0, T_base=None
-                    ###
-                    ,taylor_f_rad=taylor_f_rad
-        ) 
-        # Run the Simulation
-        n_steps = 30000
-        record_steps = 150
-        time_step = 0.001
-        wire_no_beam.simulate(n_steps=n_steps, record_steps=record_steps,
-                    time_step=time_step)
-
-        if taylor_f_rad == True:
-            taylor_string = "_taylor"
-        else:
-            taylor_string = ""
-        top_dir = "{0:.0f}um_phi_beam_sweep{1}/".format(d_wire*10**6,
-                                                        taylor_string)
-        os.makedirs(top_dir, exist_ok=True)
-        os.makedirs(top_dir + "plots/", exist_ok=True)
-        exp_list = np.linspace(15,20,num = 21)
-        for phi_exp in exp_list:
-            wire = Wire(n_wire_elements = 100, k_heat_conductivity = 174,
-                        i_current = i_current, d_wire = d_wire,
-                        emissivity = 0.2, l_wire=5.45*10**-2,
-                        beam_shape="Gaussian", sigma_beam=6*10**-3, 
-                        phi_beam=10**phi_exp,
-                        T_base=wire_no_beam.record_dict["T_distribution"][-1]
-                        ###
-                        ,taylor_f_rad=taylor_f_rad
-            ) 
-            wire.simulate(n_steps=n_steps, record_steps=record_steps,
-                        time_step=time_step)
-            wire.plot_signal(top_dir + "plots/phi_to_{}".format(phi_exp))
-            wire.save(top_dir + "phi_to_{}".format(phi_exp))
-
-
-    # Calculate endstate of heat flow
-    x_lst = [1000 * ((i + 0.5) * wire.l_segment - (wire.l_wire / 2))
-             for i in range(wire.n_wire_elements)]
-    wire.T_distribution = wire.record_dict["T_distribution"][-1]
-    f_el_arr = [wire.f_el(j) for j in range(wire.n_wire_elements)]
-    f_conduction_arr = [wire.f_conduction(j) 
-                        for j in range(wire.n_wire_elements)]
-    f_rad_arr = [wire.f_rad(j) for j in range(wire.n_wire_elements)]
-    f_beam_arr = [wire.f_beam(j) for j in range(wire.n_wire_elements)]
-
-    # Plot endstate of heat flow
-    fig = plt.figure(0, figsize=(8,6.5))
-    ax1=plt.gca()
-
-    ax1.plot(x_lst, f_el_arr, "-", label=r"$F_{el}$")
-    ax1.plot(x_lst, f_conduction_arr, "-", label=r"$F_{conduction}$")
-    ax1.plot(x_lst, f_rad_arr, "-", label=r"$F_{rad}$")
-    ax1.plot(x_lst, f_beam_arr, "-", label=r"$F_{beam}$")
-
-    ax1.set_ylabel("Heat Flow [W/m]")
-    ax1.set_xlabel(r"Wire positon [mm]")
-    plt.grid(True)
-    plt.legend(shadow=True)
-    
-    
-    format_im = 'png' #'pdf' or png
-    dpi = 300
-    plt.savefig("plots/Heat_flow_plot" + '.{}'.format(format_im),
-                format=format_im, dpi=dpi)
-    ax1.cla()
-
-
-    
-    
-    
+        return ax
