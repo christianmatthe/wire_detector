@@ -542,178 +542,391 @@ class Wire:
         power = np.sum(arr * self.l_segment)
         return power
 
-    def plot_signal(self, ax=None):
-        """ Plot Temperature over Wire for start and end of simulation. """
+    def plot_signal(self, filename="plots/signal_plot"):
+        # Plot Temperature over Wire for start and end of simulation
+        # Plot Temperature over Wire
+        plt.figure(0, figsize=(8,6.5))
+        ax1 = plt.gca()
 
-        if ax is None:
-            fig = plt.figure(0, figsize=(8, 6.5))
-            ax = plt.gca()
-
-        x_lst = [
-            1000 * ((i + 0.5) * self.l_segment - (self.l_wire / 2))
-            for i in range(self.n_wire_elements)
-        ]
+        x_lst = [1000 * ((i + 0.5) * self.l_segment - (self.l_wire / 2))
+                for i in range(self.n_wire_elements)]
         T_beam_off = self.record_dict["T_distribution"][0]
         T_beam_on = self.record_dict["T_distribution"][-1]
         T_lst = [T_beam_off, T_beam_on]
 
         R_arr = np.zeros(2)
-        for i, T_dist in enumerate(T_lst):
-            R_arr[i] = self.resistance_total(T_dist)
-
+        for i,T_dist in enumerate(T_lst):
+            self.T_distribution = T_dist
+            R_arr[i] = self.resistance_total()
+        
         U_delta = (R_arr[1] - R_arr[0]) * self.i_current
-        signal = (R_arr[1] - R_arr[0]) / R_arr[0]
+        signal = (R_arr[1] - R_arr[0])/R_arr[0]
 
-        ax.plot(
-            x_lst,
-            T_lst[0] - 273.15,
-            "-",
-            label=r"Beam Off, " + "R = {:.3f}".format(R_arr[0]) + r"$\Omega$",
-        )
-        ax.plot(
-            x_lst,
-            T_lst[1] - 273.15,
-            "-",
-            label=r"Beam On, " + "R = {:.3f}".format(R_arr[1]) + r"$\Omega$",
-        )
-
-        ax.set_ylabel("Temperature [°C]")
-        ax.set_xlabel(r"wire positon [mm]")
-        ax.set_title(
-            r"$d_{wire}$ = "
-            + "{}".format(self.d_wire * 10**6)
-            + r"$\mu m$"
-            + ", I = "
-            + "{}".format(self.i_current * 10**3)
-            + r"$mA$"
-            + r", $\phi_{beam}$ = 10^"
-            + "{:.2f}".format(np.log10(self.phi_beam))
-        )
-        ax.grid(True)
+        ax1.plot(x_lst, T_lst[0] - 273.15, "-", label=r"Beam Off, " 
+                 + "R = {:.3f}".format(R_arr[0]) + r"$\Omega$")
+        ax1.plot(x_lst, T_lst[1] - 273.15, "-", label=r"Beam On, " 
+                 + "R = {:.3f}".format(R_arr[1]) + r"$\Omega$")
+                 
+        ax1.set_ylabel("Temperature [°C]")
+        ax1.set_xlabel(r"wire positon [mm]")
+        plt.title(r"$d_{wire}$ = " + "{}".format(self.d_wire * 10**6) 
+                  + r"$\mu m$" +", I = " + "{}".format(self.i_current * 10**3)
+                  + r"$mA$" + r", $\phi_{beam}$ = 10^" + "{:.2f}".format(
+                  np.log10(self.phi_beam)))
+        plt.grid(True)
         # get existing handles and labels
-        handles, labels = ax.get_legend_handles_labels()
+        handles, labels = plt.gca().get_legend_handles_labels()
         # create a patch with no color
-        empty_patch = mpatches.Patch(color="none", label="Extra label")
+        empty_patch = mpatches.Patch(color='none', label='Extra label') 
         handles.append(empty_patch)
-        labels.append(
-            "Signal: {:.2%}, ".format(signal)
-            + r"$\Delta U$"
-            + " = {:.2f}".format(U_delta * 10**3)
-            + " mV, "
-        )
-        ax.legend(handles, labels, shadow=True)
-        return ax
+        labels.append("Signal: {:.2%}, ".format(signal) + r"$\Delta U$" 
+                      + " = {:.2f}".format(U_delta *10 **3) + " mV, ")
+        plt.legend(handles, labels, shadow=True)
+        
+        
+        format_im = 'png' #'pdf' or png
+        dpi = 300
+        plt.savefig(filename + '.{}'.format(format_im),
+                    format=format_im, dpi=dpi)
+        ax1.cla()
 
-    def plot_R_over_t(self, ax=None):
+    def plot_R_over_t(self, filename="plots/R_over_t"):
         # Plot Resistance over time
-        if ax is None:
-            fig = plt.figure(0, figsize=(8, 6.5))
-            ax = plt.gca()
+        plt.figure(0, figsize=(8,6.5))
+        ax1=plt.gca()
 
         t_lst = self.record_dict["time"]
         steps = len(t_lst)
-        R_lst = [
-            self.resistance_total(self.record_dict["T_distribution"][i])
-            for i in range(steps)
-        ]
+        R_lst = [self.resistance_total(self.record_dict["T_distribution"][i])
+                 for i in range(steps)]
 
-        R_tau = R_lst[0] + (R_lst[-1] - R_lst[0]) * (1 - 1 / np.exp(1))
+        R_tau = R_lst[0] + (R_lst[-1] - R_lst[0])*(1 - 1/np.exp(1))
         R_tau_lst = [R_tau for i in range(len(t_lst))]
-        R_95 = R_lst[0] + (R_lst[-1] - R_lst[0]) * 0.95
+        R_95 = R_lst[0] + (R_lst[-1] - R_lst[0])*0.95
         R_95_lst = [R_95 for i in range(len(t_lst))]
         # calculate time at which these are reached
         t_tau = t_lst[np.argmin(np.absolute(R_lst - R_tau))]
         t_95 = t_lst[np.argmin(np.absolute(R_lst - R_95))]
-
-        ax.plot(t_lst, R_lst, "-", label="Resistance")
-        ax.plot(
-            t_lst,
-            R_tau_lst,
-            "-",
-            label=r"$\Delta R \cdot$(1 - 1/e)" + ", t = {:.3f}".format(t_tau),
-        )
-        ax.plot(
-            t_lst,
-            R_95_lst,
-            "-",
-            label=r"$0.95 \cdot \Delta R$" + ", t = {:.3f}".format(t_95),
-        )
-        ax.set_ylabel(r"Resistance [$\Omega$]")
-        ax.set_xlabel(r"time [s]")
+        
+        ax1.plot(t_lst, R_lst, "-", label="Resistance")
+        ax1.plot(t_lst, R_tau_lst, "-",
+                 label=r"$\Delta R \cdot$(1 - 1/e)" + ", t = {:.3f}".format(t_tau))
+        ax1.plot(t_lst, R_95_lst, "-",
+                 label=r"$0.95 \cdot \Delta R$" + ", t = {:.3f}".format(t_95))
+        ax1.set_ylabel(r"Resistance [$\Omega$]")
+        ax1.set_xlabel(r"time [s]")
         plt.grid(True)
         plt.legend(shadow=True)
 
-        return ax
+        format_im = 'png' #'pdf' or png
+        dpi = 300
+        plt.savefig(filename + '.{}'.format(format_im),
+                    format=format_im, dpi=dpi)
+        ax1.cla()
 
-    def plot_heat_flow(self, ax=None, log_y: bool = False):
-        """ Calculate endstate of heat flow """
-        x_lst = [
-            1000 * ((i + 0.5) * self.l_segment - (self.l_wire / 2))
-            for i in range(self.n_wire_elements)
-        ]
+    def plot_heat_flow(self, filename="plots/heat_flow", log_y = False):
+        # Calculate endstate of heat flow
+        x_lst = [1000 * ((i + 0.5) * self.l_segment - (self.l_wire / 2))
+                for i in range(self.n_wire_elements)]
         self.T_distribution = self.record_dict["T_distribution"][-1]
-        f_el_arr = self.f_el()
-        f_conduction_arr = self.f_conduction()
-        f_rad_arr = self.f_rad()
-        f_beam_arr = self.f_beam()
-        f_beam_gas_arr = self.f_beam_gas()
-        f_bb_arr = self.f_bb()
-        f_background_gas_arr = self.f_background_gas()
-        # f_laser_arr = self.f_laser()
+        f_el_arr = [self.f_el(j) for j in range(self.n_wire_elements)]
+        f_conduction_arr = [self.f_conduction(j) 
+                            for j in range(self.n_wire_elements)]
+        f_rad_arr = [self.f_rad(j) for j in range(self.n_wire_elements)]
+        f_beam_arr = [self.f_beam(j) for j in range(self.n_wire_elements)]
+        f_beam_gas_arr = [self.f_beam_gas(j) 
+                          for j in range(self.n_wire_elements)]
+        f_bb_arr = [self.f_bb(j) for j in range(self.n_wire_elements)]
+        f_background_gas_arr = [self.f_background_gas(j)
+                                for j in range(self.n_wire_elements)]
+        f_laser_arr = [self.f_laser(j)
+                                for j in range(self.n_wire_elements)]
 
-        if ax is None:
-            fig = plt.figure(0, figsize=(8, 6.5))
-            ax = plt.gca()
+        f_conduction_bodge_arr = [self.f_conduction_bodge(j) 
+                        for j in range(self.n_wire_elements)]
 
-        ax.plot(x_lst, f_el_arr, "-", label=r"$F_{el}$")
+        # Plot endstate of heat flow
+        plt.figure(0, figsize=(8,6.5))
+        ax1=plt.gca()
 
-        ax.plot(x_lst, f_conduction_arr, "--", label=r"$-F_{conduction}$")
-        ax.plot(x_lst, f_rad_arr, "--", label=r"$-F_{rad}$")
-        ax.plot(x_lst, f_beam_arr, "-", label=r"$F_{beam}$")
-        ax.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
-        ax.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, cracker}$")
-        ax.plot(x_lst, f_background_gas_arr, "--", label=r"$-F_{backgr. \, gas}$")
-        # ax.plot(x_lst, f_laser_arr, "-", label=r"$F_{laser}$")
+        # if self.bodge == True:
+        #     for i in range(0,25):
+        #         f_el_arr[i] = 0
+        #     for i in range(self.n_wire_elements - 25,self.n_wire_elements):
+        #         f_el_arr[i] = 0
+        ax1.plot(x_lst, f_el_arr, "-", label=r"$F_{el}$")
+        #bodge_start
+        try:
+            if self.bodge == True:
+                ax1.plot(x_lst, f_conduction_bodge_arr, "--"
+                        , label=r"$F_{\mathrm{cond. piecewise}}$")
+            else:
+                ax1.plot(x_lst, f_conduction_arr, "--",
+                         label=r"$-F_{conduction}$")
+        except:
+            #bodge_end
+            ax1.plot(x_lst, f_conduction_arr, "--", label=r"$-F_{conduction}$")
+        ax1.plot(x_lst, f_rad_arr, "--", label=r"$-F_{rad}$")
+        ax1.plot(x_lst, f_beam_arr, "-", label=r"$F_{beam}$")
+        ax1.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
+        ax1.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, cracker}$")
+        ax1.plot(x_lst, f_background_gas_arr, "--"
+                 , label=r"$-F_{backgr. \, gas}$")
+        ax1.plot(x_lst, f_laser_arr, "-"
+                 , label=r"$F_{laser}$")
 
-        ax.set_ylabel("Heat Flow [W/m]", fontsize=16)
-        ax.set_xlabel(r"Wire positon [mm]", fontsize=16)
-        ax.tick_params(axis="both", which="major", labelsize=12)
-        ax.grid(True)
-        ax.legend(shadow=True)
+        ax1.set_ylabel("Heat Flow [W/m]", fontsize = 16)
+        ax1.set_xlabel(r"Wire positon [mm]", fontsize = 16)
+        ax1.tick_params(axis='both', which='major', labelsize=12)
+        plt.grid(True)
+        plt.legend(shadow=True)
 
-        # fancy legend:
+        #fancy legend:
         if True:
-            h, l = ax.get_legend_handles_labels()
-            sources = [0, 3, 4, 5, 7]
-            sinks = [1, 2, 6]
-
-            l1 = ax.legend(
-                [h[i] for i in sources],
-                [l[i] for i in sources],
-                # shadow = True,
-                # framealpha = 0.5,
-                loc="upper left",
-                bbox_to_anchor=(1, 1),
-                fontsize=14,
-                title="Heat Sources:",
-                title_fontsize=14,
-                ncol=1,
-            )
-            ax.add_artist(l1)
-            ax.legend(
-                [h[i] for i in sinks],
-                [l[i] for i in sinks],
-                # shadow = True,
-                # framealpha = 0.5,
-                loc="upper left",
-                bbox_to_anchor=(1, 0.60),
-                fontsize=14,
-                title="Heat Sinks:",
-                title_fontsize=14,
-                ncol=1,
-            )
+            h, l = ax1.get_legend_handles_labels()
+            sources = [0,3,
+                        4,5,7
+                        ]
+            sinks = [1,2
+                     ,6
+                     ]
+            #TOP legend
+            # l1 = ax1.legend([h[i] for i in sources], [l[i] for i in sources],
+            #    #shadow = True,
+            #    #framealpha = 0.5,
+            #    loc = "lower left",
+            #    bbox_to_anchor=(0, 1),
+            #    fontsize = "large",
+            #    title = "Heat Sources:",
+            #    ncol = 2
+            #    )
+            # plt.gca().add_artist(l1)
+            # l2 = ax1.legend([h[i] for i in sinks], [l[i] for i in sinks],
+            #    #shadow = True,
+            #    #framealpha = 0.5,
+            #    loc = "lower right",
+            #    bbox_to_anchor=(1, 1),
+            #    fontsize = "large",
+            #    title = "Heat Sinks:",
+            #    ncol = 2
+            #    )
+            #Right Side Legend
+            l1 = ax1.legend([h[i] for i in sources], [l[i] for i in sources],
+               #shadow = True,
+               #framealpha = 0.5,
+               loc = "upper left",
+               bbox_to_anchor=(1, 1),
+               fontsize = 14,
+               title = "Heat Sources:",
+               title_fontsize = 14,
+               ncol = 1
+               )
+            plt.gca().add_artist(l1)
+            ax1.legend([h[i] for i in sinks], [l[i] for i in sinks],
+               #shadow = True,
+               #framealpha = 0.5,
+               loc = "upper left",
+               bbox_to_anchor=(1, 0.60),
+               fontsize = 14,
+               title = "Heat Sinks:",
+               title_fontsize = 14,
+               ncol = 1
+               )
+            plt.tight_layout()
 
         if log_y == True:
-            ax.set_yscale("log")
+            ax1.set_yscale("log")
+            if filename == "plots/heat_flow":
+                filename= "plots/log_heat_flow"
 
-        return ax
+        format_im = 'png' #'pdf' or png
+        dpi = 300
+        plt.savefig(filename + '.{}'.format(format_im),
+                    format=format_im, dpi=dpi)
+        ax1.cla()
+
+            
+def pressure_chamber(phi_beam, crack_eff):
+    #calculate flow in sccm
+    sccm = 4.478 * 10**17
+    mbar_to_Pa = 100
+    flow_sccm = phi_beam * (1/crack_eff) / sccm
+    #Empirical Formula based on elog of Nov 23 2148 10 sccm
+    p = (flow_sccm * 1.4 *10**-8 + 5 * 10**-10) * mbar_to_Pa
+    return p 
+
+    # def plot_signal(self, ax=None):
+    #     """ Plot Temperature over Wire for start and end of simulation. """
+
+    #     if ax is None:
+    #         fig = plt.figure(0, figsize=(8, 6.5))
+    #         ax = plt.gca()
+
+    #     x_lst = [
+    #         1000 * ((i + 0.5) * self.l_segment - (self.l_wire / 2))
+    #         for i in range(self.n_wire_elements)
+    #     ]
+    #     T_beam_off = self.record_dict["T_distribution"][0]
+    #     T_beam_on = self.record_dict["T_distribution"][-1]
+    #     T_lst = [T_beam_off, T_beam_on]
+
+    #     R_arr = np.zeros(2)
+    #     for i, T_dist in enumerate(T_lst):
+    #         R_arr[i] = self.resistance_total(T_dist)
+
+    #     U_delta = (R_arr[1] - R_arr[0]) * self.i_current
+    #     signal = (R_arr[1] - R_arr[0]) / R_arr[0]
+
+    #     ax.plot(
+    #         x_lst,
+    #         T_lst[0] - 273.15,
+    #         "-",
+    #         label=r"Beam Off, " + "R = {:.3f}".format(R_arr[0]) + r"$\Omega$",
+    #     )
+    #     ax.plot(
+    #         x_lst,
+    #         T_lst[1] - 273.15,
+    #         "-",
+    #         label=r"Beam On, " + "R = {:.3f}".format(R_arr[1]) + r"$\Omega$",
+    #     )
+
+    #     ax.set_ylabel("Temperature [°C]")
+    #     ax.set_xlabel(r"wire positon [mm]")
+    #     ax.set_title(
+    #         r"$d_{wire}$ = "
+    #         + "{}".format(self.d_wire * 10**6)
+    #         + r"$\mu m$"
+    #         + ", I = "
+    #         + "{}".format(self.i_current * 10**3)
+    #         + r"$mA$"
+    #         + r", $\phi_{beam}$ = 10^"
+    #         + "{:.2f}".format(np.log10(self.phi_beam))
+    #     )
+    #     ax.grid(True)
+    #     # get existing handles and labels
+    #     handles, labels = ax.get_legend_handles_labels()
+    #     # create a patch with no color
+    #     empty_patch = mpatches.Patch(color="none", label="Extra label")
+    #     handles.append(empty_patch)
+    #     labels.append(
+    #         "Signal: {:.2%}, ".format(signal)
+    #         + r"$\Delta U$"
+    #         + " = {:.2f}".format(U_delta * 10**3)
+    #         + " mV, "
+    #     )
+    #     ax.legend(handles, labels, shadow=True)
+    #     return ax
+
+    # def plot_R_over_t(self, ax=None):
+    #     # Plot Resistance over time
+    #     if ax is None:
+    #         fig = plt.figure(0, figsize=(8, 6.5))
+    #         ax = plt.gca()
+
+    #     t_lst = self.record_dict["time"]
+    #     steps = len(t_lst)
+    #     R_lst = [
+    #         self.resistance_total(self.record_dict["T_distribution"][i])
+    #         for i in range(steps)
+    #     ]
+
+    #     R_tau = R_lst[0] + (R_lst[-1] - R_lst[0]) * (1 - 1 / np.exp(1))
+    #     R_tau_lst = [R_tau for i in range(len(t_lst))]
+    #     R_95 = R_lst[0] + (R_lst[-1] - R_lst[0]) * 0.95
+    #     R_95_lst = [R_95 for i in range(len(t_lst))]
+    #     # calculate time at which these are reached
+    #     t_tau = t_lst[np.argmin(np.absolute(R_lst - R_tau))]
+    #     t_95 = t_lst[np.argmin(np.absolute(R_lst - R_95))]
+
+    #     ax.plot(t_lst, R_lst, "-", label="Resistance")
+    #     ax.plot(
+    #         t_lst,
+    #         R_tau_lst,
+    #         "-",
+    #         label=r"$\Delta R \cdot$(1 - 1/e)" + ", t = {:.3f}".format(t_tau),
+    #     )
+    #     ax.plot(
+    #         t_lst,
+    #         R_95_lst,
+    #         "-",
+    #         label=r"$0.95 \cdot \Delta R$" + ", t = {:.3f}".format(t_95),
+    #     )
+    #     ax.set_ylabel(r"Resistance [$\Omega$]")
+    #     ax.set_xlabel(r"time [s]")
+    #     plt.grid(True)
+    #     plt.legend(shadow=True)
+
+    #     return ax
+
+    # def plot_heat_flow(self, ax=None, log_y: bool = False):
+    #     """ Calculate endstate of heat flow """
+    #     x_lst = [
+    #         1000 * ((i + 0.5) * self.l_segment - (self.l_wire / 2))
+    #         for i in range(self.n_wire_elements)
+    #     ]
+    #     self.T_distribution = self.record_dict["T_distribution"][-1]
+    #     f_el_arr = self.f_el()
+    #     f_conduction_arr = self.f_conduction()
+    #     f_rad_arr = self.f_rad()
+    #     f_beam_arr = self.f_beam()
+    #     f_beam_gas_arr = self.f_beam_gas()
+    #     f_bb_arr = self.f_bb()
+    #     f_background_gas_arr = self.f_background_gas()
+    #     # f_laser_arr = self.f_laser()
+
+    #     if ax is None:
+    #         fig = plt.figure(0, figsize=(8, 6.5))
+    #         ax = plt.gca()
+
+    #     ax.plot(x_lst, f_el_arr, "-", label=r"$F_{el}$")
+
+    #     ax.plot(x_lst, f_conduction_arr, "--", label=r"$-F_{conduction}$")
+    #     ax.plot(x_lst, f_rad_arr, "--", label=r"$-F_{rad}$")
+    #     ax.plot(x_lst, f_beam_arr, "-", label=r"$F_{beam}$")
+    #     ax.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
+    #     ax.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, cracker}$")
+    #     ax.plot(x_lst, f_background_gas_arr, "--", label=r"$-F_{backgr. \, gas}$")
+    #     # ax.plot(x_lst, f_laser_arr, "-", label=r"$F_{laser}$")
+
+    #     ax.set_ylabel("Heat Flow [W/m]", fontsize=16)
+    #     ax.set_xlabel(r"Wire positon [mm]", fontsize=16)
+    #     ax.tick_params(axis="both", which="major", labelsize=12)
+    #     ax.grid(True)
+    #     ax.legend(shadow=True)
+
+    #     # fancy legend:
+    #     if True:
+    #         h, l = ax.get_legend_handles_labels()
+    #         sources = [0, 3, 4, 5, 7]
+    #         sinks = [1, 2, 6]
+
+    #         l1 = ax.legend(
+    #             [h[i] for i in sources],
+    #             [l[i] for i in sources],
+    #             # shadow = True,
+    #             # framealpha = 0.5,
+    #             loc="upper left",
+    #             bbox_to_anchor=(1, 1),
+    #             fontsize=14,
+    #             title="Heat Sources:",
+    #             title_fontsize=14,
+    #             ncol=1,
+    #         )
+    #         ax.add_artist(l1)
+    #         ax.legend(
+    #             [h[i] for i in sinks],
+    #             [l[i] for i in sinks],
+    #             # shadow = True,
+    #             # framealpha = 0.5,
+    #             loc="upper left",
+    #             bbox_to_anchor=(1, 0.60),
+    #             fontsize=14,
+    #             title="Heat Sinks:",
+    #             title_fontsize=14,
+    #             ncol=1,
+    #         )
+
+    #     if log_y == True:
+    #         ax.set_yscale("log")
+
+    #     return ax
