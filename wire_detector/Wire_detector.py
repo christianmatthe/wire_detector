@@ -629,21 +629,15 @@ class Wire:
         x_lst = [1000 * ((i + 0.5) * self.l_segment - (self.l_wire / 2))
                 for i in range(self.n_wire_elements)]
         self.T_distribution = self.record_dict["T_distribution"][-1]
-        f_el_arr = [self.f_el(j) for j in range(self.n_wire_elements)]
-        f_conduction_arr = [self.f_conduction(j) 
-                            for j in range(self.n_wire_elements)]
-        f_rad_arr = [self.f_rad(j) for j in range(self.n_wire_elements)]
-        f_beam_arr = [self.f_beam(j) for j in range(self.n_wire_elements)]
-        f_beam_gas_arr = [self.f_beam_gas(j) 
-                          for j in range(self.n_wire_elements)]
-        f_bb_arr = [self.f_bb(j) for j in range(self.n_wire_elements)]
-        f_background_gas_arr = [self.f_background_gas(j)
-                                for j in range(self.n_wire_elements)]
-        f_laser_arr = [self.f_laser(j)
-                                for j in range(self.n_wire_elements)]
-
-        f_conduction_bodge_arr = [self.f_conduction_bodge(j) 
-                        for j in range(self.n_wire_elements)]
+        
+        f_el_arr = self.f_el()
+        f_conduction_arr = self.f_conduction()
+        f_rad_arr = self.f_rad()
+        f_beam_arr = self.f_beam()
+        f_beam_gas_arr = self.f_beam_gas()
+        f_bb_arr = self.f_bb()
+        f_background_gas_arr = self.f_background_gas()
+        # f_laser_arr = self.f_laser()
 
         # Plot endstate of heat flow
         plt.figure(0, figsize=(8,6.5))
