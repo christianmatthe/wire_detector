@@ -176,8 +176,11 @@ class Wire:
         self.y0  = y0 # m, wire to HABS distance in CAD)
         self.l_eff = l_eff
         #init norm_factor
+        # "beamshape.py" speaks milimeters rather than meters
+        # NOTE to self, stick to SI base units
+        # adjust accordingly
         self.norm_factor  = calc_norm_factor(l_eff = self.l_eff,
-                                        y0 = self.y0)
+                                        y0 = self.y0 * 1000)
         return
     
     
