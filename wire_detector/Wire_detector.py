@@ -5,6 +5,9 @@ from scipy import interpolate
 import os
 import dill
 
+#NOTE the interpackage dependency
+from wire_analysis.beamshape import calc_norm_factor, j
+
 
 class Wire:
     """
@@ -168,48 +171,42 @@ class Wire:
         # Intial State of the Wire
         self.T_distribution = np.ones(self.n_wire_elements) * self.T_background
         self.simulation_time = 0
-        if self.beam_shape == "Tschersich":
-            #NOTE the interpackage dependency
-            from wire_analysis.beamshape import calc_norm_factor, j
-            # Initialize vars
-            self.y0  = y0 # m, wire to HABS distance in CAD)
-            self.l_eff = l_eff
-            def theta(self,x):
-                y0 = self.y0
-                z0 = 0 # simple casse of centetered wire
-                z_center = 0 # simple casse of centetered wire
-                return np.arctan(np.sqrt(x ** 2 + (z_center - z0) ** 2) / y0)
-            
-            norm_factor  = calc_norm_factor(l_eff = self.l_eff,
-                                                    y0 = self.y0)
 
-            def j_norm_linear(self,
-                        x,
-                        norm_factor = norm_factor) -> np.ndarray:
-                """
-                This function serves to integrate the H distribution along a thin rectangle
-                i.e. a projected wire. 
-                DO NOT ENTER LARGE z_lims. Keep them well below mm
-
-                The simplification to a 1D integral greatly speeds up the integration
-                """
-                if norm_factor == None:
-                    # per default calculate noormalization factor
-                    # The function is much faster if norm_factor is provided
-                    norm_factor = calc_norm_factor(l_eff = self.l_eff,
-                                                    y0 = self.y0)
-            
-                j_norm_lin =  ( norm_factor
-                                    # * z_width # will move to f_beam
-                                    * j(theta(x), self.l_eff)
-                                    * 1/(self.y0**2 * (1/np.cos(theta(x))**3))
-                                    # from solid angle to area on plane
-                                        )
-                return j_norm_lin
-
+        # Initialize tschersich beam vars
+        self.y0  = y0 # m, wire to HABS distance in CAD)
+        self.l_eff = l_eff
+        #init norm_factor
+        self.norm_factor  = calc_norm_factor(l_eff = self.l_eff,
+                                        y0 = self.y0)
         return
     
     
+    # if self.beam_shape == "Tschersich":
+    #NOTE the interpackage dependency
+    def theta(self,x):
+        y0 = self.y0
+        z0 = 0 # simple casse of centetered wire
+        z_center = 0 # simple casse of centetered wire
+        return np.arctan(np.sqrt(x ** 2 + (z_center - z0) ** 2) / y0)
+
+    def j_norm_linear(self,
+                x,
+                ) -> np.ndarray:
+        """
+        This function serves to integrate the H distribution along a thin rectangle
+        i.e. a projected wire. 
+        DO NOT ENTER LARGE z_lims. Keep them well below mm
+
+        The simplification to a 1D integral greatly speeds up the integration
+        """
+    
+        j_norm_lin =  ( self.norm_factor
+                            # * z_width # will move to f_beam
+                            * j(self.theta(x), self.l_eff)
+                            * 1/(self.y0**2 * (1/np.cos(self.theta(x))**3))
+                            # from solid angle to area on plane
+                                )
+        return j_norm_lin
 
 
 
