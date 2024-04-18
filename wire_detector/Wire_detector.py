@@ -177,10 +177,13 @@ class Wire:
         self.l_eff = l_eff
         #init norm_factor
         # "beamshape.py" speaks milimeters rather than meters
+        # calc_norm_dactor,, does not even actually use y0, and does not need
+        # to ooof.
         # NOTE to self, stick to SI base units
         # adjust accordingly
         self.norm_factor  = calc_norm_factor(l_eff = self.l_eff,
-                                        y0 = self.y0 * 1000)
+                                        #y0 = self.y0 * 1000
+                                        )
         return
     
     
@@ -322,8 +325,12 @@ class Wire:
         if self.beam_shape == "Flat":
             mask = np.zeros(shape)
             mask[abs(self.x_offset_beam - x_positions) < self.l_beam / 2] = 1
-            q = mask / sum(mask)
-            q *= (self.d_wire * self.l_beam) / (np.pi * self.l_beam**2)
+            # Does this caculte the fractionn of the wire which is illumintated?
+            # should  not be relevant for a power density f
+            q = mask # / sum(mask) # i think not dividing is correct (Chr)
+            # calculate fraction area which prijected wire makes up
+            # Area wire/area beam
+            q *= (self.d_wire * self.l_beam) / (np.pi * (self.l_beam/2)**2)
 
         elif self.beam_shape == "Gaussian":
             q = (
@@ -333,7 +340,7 @@ class Wire:
                     -((x_positions - self.x_offset_beam) ** 2)
                     / (2 * (self.sigma_beam) ** 2)
                 )
-                * self.l_segment
+                #* self.l_segment # multiplying by l_seg happens in delta_T
                 * self.d_wire
             )
             # q *= (self.d_wire * self.sigma_beam) / (np.pi * self.sigma_beam**2)
@@ -344,13 +351,16 @@ class Wire:
             q = mask
 
         elif self.beam_shape == "Tschersich":
-            q = (self.j_norm_linear(x = x_positions - self.x_offset_beam)
-                * self.l_segment
+            q = (
+                self.j_norm_linear(x = x_positions - self.x_offset_beam)
+                # * self.l_segment # multiplying by l_seg happens in delta_T
                 * self.d_wire)
         else:
             raise Exception("Unrecognized beam shape")
 
-        return self.phi_beam * self.E_recombination * q
+        # q is the fraction of particles which hit in this case
+        # E_rec is for 2 atoms
+        return self.phi_beam * self.E_recombination * (1/2) * q
 
     def f_laser(self) -> np.ndarray:
         """Deprecated."""
