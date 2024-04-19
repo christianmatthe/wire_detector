@@ -179,6 +179,7 @@ class Wire:
         # "beamshape.py" speaks milimeters rather than meters
         # calc_norm_dactor,, does not even actually use y0, and does not need
         # to ooof.
+        # But python throws an error
         # NOTE to self, stick to SI base units
         # adjust accordingly
         self.norm_factor  = calc_norm_factor(l_eff = self.l_eff,
@@ -424,7 +425,8 @@ class Wire:
             * (self.T_cracker**4 - self.T_background**4)
             * self.A_cracker
             * (A_incident / A_sphere)
-            / self.l_beam
+            / self.l_beam # why is this here? CHr 2024-04-19
+                            # Ah I see it canceles the l_beam from A_incident
         )  # normalization to length density
 
         return f
@@ -676,7 +678,7 @@ class Wire:
         ax1.plot(x_lst, f_rad_arr, "--", label=r"$-F_{rad}$")
         ax1.plot(x_lst, f_beam_arr, "-", label=r"$F_{beam}$")
         ax1.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
-        ax1.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, cracker}$")
+        ax1.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, HABS}$")
         ax1.plot(x_lst, f_background_gas_arr, "--"
                  , label=r"$-F_{backgr. \, gas}$")
         # ax1.plot(x_lst, f_laser_arr, "-"

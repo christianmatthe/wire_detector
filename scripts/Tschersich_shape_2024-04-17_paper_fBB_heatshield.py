@@ -8,7 +8,7 @@ from Wire_detector import Wire
 from time import time
 
 start_time = time()
-top_dir = "Tschersich_shape_sims_2024-04-17_paper/"
+top_dir = "Tschersich_shape_sims_2024-04-17_paper_fbb_heatshield_2/"
 os.makedirs(top_dir, exist_ok=True)
 results_dir = top_dir + "results/"
 plot_dir = top_dir + "plots/"
@@ -33,6 +33,10 @@ T_cracker_list = [ 2300
 ## From 2022-10-27_PG60_off_CMatthe . pptx
 pressure = 2.5 * 10**-5 *100 # 1sccm in top chamber, 100 is to et from mbar
                              # to Pa
+T_heatshield = 1500 # K
+# A_heatshield = np.pi * (10 * 10**-3) ** 2,  # 20mm diameter disk
+A_heatshield = np.pi * (3 * 10**-3) ** 2 / ((35.17 - 7.1)/35.17)**2, 
+ # 3mm diameter HAbs opening, projecting a slightly alrger area onto heatshield
 
 min_segment_length = 0.1*10**-3
 for l_wire in l_wire_list:
@@ -56,7 +60,8 @@ for l_wire in l_wire_list:
             emissivity = 0.25, # estimate from fits in 
             # 2022-03-29_P8_CMatthe_Wire_detector_Update 
             l_wire=l_wire*10**-2,
-            T_cracker = T_cracker, T_atoms = T_cracker, T_molecules=T_cracker,
+            T_cracker = T_heatshield, A_cracker= A_heatshield,
+            T_atoms = T_cracker, T_molecules=T_cracker,
             pressure= 0 * pressure, # (not quite 0 but close enough)
             dist_cracker_wire = 35.17 * 10**-3, # from CAD
             ###
@@ -88,7 +93,8 @@ for l_wire in l_wire_list:
             # 2022-03-29_P8_CMatthe_Wire_detector_Update 
             # # should be mmuch lower for perfect gold
             l_wire=l_wire*10**-2,
-            T_cracker = T_cracker, T_atoms = T_cracker, T_molecules=T_cracker,
+            T_cracker = T_heatshield, A_cracker= A_heatshield,
+            T_atoms = T_cracker, T_molecules=T_cracker,
             pressure= ((10**phi_exp)/(4.47*10**17 * crack_eff) * pressure), 
             # HAck to scale pressure to approximate of measured pressure at 
             # 1sccm

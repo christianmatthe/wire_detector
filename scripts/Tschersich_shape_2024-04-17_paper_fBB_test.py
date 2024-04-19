@@ -8,7 +8,7 @@ from Wire_detector import Wire
 from time import time
 
 start_time = time()
-top_dir = "Tschersich_shape_sims_2024-04-17_paper/"
+top_dir = "Tschersich_shape_sims_2024-04-17_paper_fbb/"
 os.makedirs(top_dir, exist_ok=True)
 results_dir = top_dir + "results/"
 plot_dir = top_dir + "plots/"
@@ -56,7 +56,7 @@ for l_wire in l_wire_list:
             emissivity = 0.25, # estimate from fits in 
             # 2022-03-29_P8_CMatthe_Wire_detector_Update 
             l_wire=l_wire*10**-2,
-            T_cracker = T_cracker, T_atoms = T_cracker, T_molecules=T_cracker,
+            T_cracker = 4*T_cracker, T_atoms = T_cracker, T_molecules=T_cracker,
             pressure= 0 * pressure, # (not quite 0 but close enough)
             dist_cracker_wire = 35.17 * 10**-3, # from CAD
             ###
@@ -88,7 +88,7 @@ for l_wire in l_wire_list:
             # 2022-03-29_P8_CMatthe_Wire_detector_Update 
             # # should be mmuch lower for perfect gold
             l_wire=l_wire*10**-2,
-            T_cracker = T_cracker, T_atoms = T_cracker, T_molecules=T_cracker,
+            T_cracker = 4*T_cracker, T_atoms = T_cracker, T_molecules=T_cracker,
             pressure= ((10**phi_exp)/(4.47*10**17 * crack_eff) * pressure), 
             # HAck to scale pressure to approximate of measured pressure at 
             # 1sccm
