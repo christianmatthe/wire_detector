@@ -676,7 +676,7 @@ class Wire:
             #bodge_end
             ax1.plot(x_lst, f_conduction_arr, "--", label=r"$-F_{conduction}$")
         ax1.plot(x_lst, f_rad_arr, "--", label=r"$-F_{rad}$")
-        ax1.plot(x_lst, f_beam_arr, "-", label=r"$F_{beam}$")
+        ax1.plot(x_lst, f_beam_arr, "-", label=r"$F_{rec}$")
         ax1.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
         ax1.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, HABS}$")
         ax1.plot(x_lst, f_background_gas_arr, "--"
@@ -891,7 +891,7 @@ def pressure_chamber(phi_beam, crack_eff):
 
     #     ax.plot(x_lst, f_conduction_arr, "--", label=r"$-F_{conduction}$")
     #     ax.plot(x_lst, f_rad_arr, "--", label=r"$-F_{rad}$")
-    #     ax.plot(x_lst, f_beam_arr, "-", label=r"$F_{beam}$")
+    #     ax.plot(x_lst, f_beam_arr, "-", label=r"$F_{rec}$")
     #     ax.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
     #     ax.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, cracker}$")
     #     ax.plot(x_lst, f_background_gas_arr, "--", label=r"$-F_{backgr. \, gas}$")
