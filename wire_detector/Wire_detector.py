@@ -663,38 +663,45 @@ class Wire:
         #         f_el_arr[i] = 0
         #     for i in range(self.n_wire_elements - 25,self.n_wire_elements):
         #         f_el_arr[i] = 0
-        ax1.plot(x_lst, f_el_arr, "-", label=r"$F_{el}$")
+        ax1.plot(x_lst, f_el_arr, "-", label=r"$f_{el}$")
         #bodge_start
         try:
             if self.bodge == True:
                 ax1.plot(x_lst, f_conduction_bodge_arr, "--"
-                        , label=r"$F_{\mathrm{cond. piecewise}}$")
+                        , label=r"$f_{\mathrm{cond. piecewise}}$")
             else:
                 ax1.plot(x_lst, f_conduction_arr, "--",
-                         label=r"$-F_{conduction}$")
+                         label=r"$-f_{conduction}$")
         except:
             #bodge_end
-            ax1.plot(x_lst, f_conduction_arr, "--", label=r"$-F_{conduction}$")
-        ax1.plot(x_lst, f_rad_arr, "--", label=r"$-F_{rad}$")
-        ax1.plot(x_lst, f_beam_arr, "-", label=r"$F_{rec}$")
-        ax1.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
-        ax1.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, HABS}$")
+            ax1.plot(x_lst, f_conduction_arr, "--", label=r"$-f_{conduction}$")
+        ax1.plot(x_lst, f_rad_arr, "--", label=r"$-f_{rad}$")
+        ax1.plot(x_lst, f_beam_arr, "-", label=r"$f_{rec}$")
+        ax1.plot(x_lst, f_beam_gas_arr, "-", label=r"$f_{beam \,gas}$")
+        ax1.plot(x_lst, f_bb_arr, "-", label=r"$f_{bb}$")
         ax1.plot(x_lst, f_background_gas_arr, "--"
-                 , label=r"$-F_{backgr. \, gas}$")
+                 , label=r"$-f_{backgr. \, gas}$")
         # ax1.plot(x_lst, f_laser_arr, "-"
-        #          , label=r"$F_{laser}$")
+        #          , label=r"$f_{laser}$")
 
         ax1.set_ylabel("Heat Flow [W/m]", fontsize = 16)
         ax1.set_xlabel(r"Wire positon [mm]", fontsize = 16)
         ax1.tick_params(axis='both', which='major', labelsize=12)
+
+        #change line width after the fact
+        for line in plt.gca().lines:
+             line.set_linewidth(5.)
+
         plt.grid(True)
         plt.legend(shadow=True)
+
+
 
         #fancy legend:
         if True:
             h, l = ax1.get_legend_handles_labels()
-            sources = [0,3,
-                        4,5
+            sources = [0,5,3,
+                        4
                         ]
             sinks = [1,2
                      ,6
