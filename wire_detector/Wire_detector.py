@@ -667,20 +667,20 @@ class Wire:
         #bodge_start
         try:
             if self.bodge == True:
-                ax1.plot(x_lst, f_conduction_bodge_arr, "--"
+                ax1.plot(x_lst, f_conduction_bodge_arr, linestyle = (0, (1, 1))
                         , label=r"$f_{\mathrm{cond. piecewise}}$")
             else:
-                ax1.plot(x_lst, f_conduction_arr, "--",
-                         label=r"$-f_{conduction}$")
+                ax1.plot(x_lst, f_conduction_arr, linestyle = (0, (1, 1)),
+                         label=r"$f_{conduction}$")
         except:
             #bodge_end
-            ax1.plot(x_lst, f_conduction_arr, "--", label=r"$-f_{conduction}$")
-        ax1.plot(x_lst, f_rad_arr, "--", label=r"$-f_{rad}$")
+            ax1.plot(x_lst, f_conduction_arr, linestyle = (0, (1, 1)), label=r"$f_{conduction}$")
+        ax1.plot(x_lst, f_rad_arr, linestyle = (0, (1, 1)), label=r"$f_{rad}$")
         ax1.plot(x_lst, f_beam_arr, "-", label=r"$f_{rec}$")
         ax1.plot(x_lst, f_beam_gas_arr, "-", label=r"$f_{beam \,gas}$")
         ax1.plot(x_lst, f_bb_arr, "-", label=r"$f_{bb}$")
-        ax1.plot(x_lst, f_background_gas_arr, "--"
-                 , label=r"$-f_{backgr. \, gas}$")
+        ax1.plot(x_lst, f_background_gas_arr, linestyle = (0, (1, 1))
+                 , label=r"$f_{backgr. \, gas}$")
         # ax1.plot(x_lst, f_laser_arr, "-"
         #          , label=r"$f_{laser}$")
 
@@ -690,7 +690,7 @@ class Wire:
 
         #change line width after the fact
         for line in plt.gca().lines:
-             line.set_linewidth(5.)
+             line.set_linewidth(4.)
 
         plt.grid(True)
         plt.legend(shadow=True)
@@ -896,12 +896,12 @@ def pressure_chamber(phi_beam, crack_eff):
 
     #     ax.plot(x_lst, f_el_arr, "-", label=r"$F_{el}$")
 
-    #     ax.plot(x_lst, f_conduction_arr, "--", label=r"$-F_{conduction}$")
-    #     ax.plot(x_lst, f_rad_arr, "--", label=r"$-F_{rad}$")
+    #     ax.plot(x_lst, f_conduction_arr, linestyle = (0, (1, 1)), label=r"$-F_{conduction}$")
+    #     ax.plot(x_lst, f_rad_arr, linestyle = (0, (1, 1)), label=r"$-F_{rad}$")
     #     ax.plot(x_lst, f_beam_arr, "-", label=r"$F_{rec}$")
     #     ax.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
     #     ax.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, cracker}$")
-    #     ax.plot(x_lst, f_background_gas_arr, "--", label=r"$-F_{backgr. \, gas}$")
+    #     ax.plot(x_lst, f_background_gas_arr, linestyle = (0, (1, 1)), label=r"$-F_{backgr. \, gas}$")
     #     # ax.plot(x_lst, f_laser_arr, "-", label=r"$F_{laser}$")
 
     #     ax.set_ylabel("Heat Flow [W/m]", fontsize=16)
