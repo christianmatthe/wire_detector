@@ -623,7 +623,9 @@ class Wire:
         
 
         ax1.plot(x_lst, T_lst[0] - 273.15, "-", label=r"T(x) in equilibrium, " 
-                 + "R = {:.3f}".format(R_arr[0]) + r"$\Omega$")
+                 + "R = {:.3f}".format(R_arr[0]) + r"$\Omega$",
+                 linewidth = 3
+                 )
 
                  
         ax1.set_ylabel("Temperature [°C]")
