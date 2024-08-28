@@ -630,10 +630,10 @@ class Wire:
                  
         ax1.set_ylabel("Temperature [°C]")
         ax1.set_xlabel(r"Wire positon [mm]")
-        plt.title(r"$d_{wire}$ = " + "{}".format(self.d_wire * 10**6) 
-                  + r"$\mu m$" +", I = " + "{}".format(self.i_current * 10**3)
-                  + r"$mA$" + r", $\phi_{beam}$ = 10^" + "{:.2f}".format(
-                  np.log10(self.phi_beam)))
+        # plt.title(r"$d_{wire}$ = " + "{}".format(self.d_wire * 10**6) 
+        #           + r"$\mu m$" +", I = " + "{}".format(self.i_current * 10**3)
+        #           + r"$mA$" + r", $\phi_{beam}$ = 10^" + "{:.2f}".format(
+        #           np.log10(self.phi_beam)))
         plt.grid(True)
         # get existing handles and labels
         handles, labels = plt.gca().get_legend_handles_labels()
