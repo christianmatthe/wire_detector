@@ -583,7 +583,7 @@ class Wire:
                  + "R = {:.3f}".format(R_arr[1]) + r"$\Omega$")
                  
         ax1.set_ylabel("Temperature [°C]")
-        ax1.set_xlabel(r"wire positon [mm]")
+        ax1.set_xlabel(r"Wire positon [mm]")
         plt.title(r"$d_{wire}$ = " + "{}".format(self.d_wire * 10**6) 
                   + r"$\mu m$" +", I = " + "{}".format(self.i_current * 10**3)
                   + r"$mA$" + r", $\phi_{beam}$ = 10^" + "{:.2f}".format(
@@ -604,6 +604,46 @@ class Wire:
         plt.savefig(filename + '.{}'.format(format_im),
                     format=format_im, dpi=dpi)
         ax1.cla()
+
+    def plot_T_final(self, filename="plots/T_final"):
+        # Plot Temperature over Wire for start and end of simulation
+        # Plot Temperature over Wire
+        plt.figure(0, figsize=(8,6.5))
+        ax1 = plt.gca()
+
+        x_lst = [1000 * ((i + 0.5) * self.l_segment - (self.l_wire / 2))
+                for i in range(self.n_wire_elements)]
+        T_beam_on = self.record_dict["T_distribution"][-1]
+        T_lst = [T_beam_on]
+
+        R_arr = np.zeros(2)
+        for i,T_dist in enumerate(T_lst):
+            self.T_distribution = T_dist
+            R_arr[i] = self.resistance_total()
+        
+
+        ax1.plot(x_lst, T_lst[0] - 273.15, "-", label=r"T(x) in equilibrium, " 
+                 + "R = {:.3f}".format(R_arr[0]) + r"$\Omega$")
+
+                 
+        ax1.set_ylabel("Temperature [°C]")
+        ax1.set_xlabel(r"Wire positon [mm]")
+        plt.title(r"$d_{wire}$ = " + "{}".format(self.d_wire * 10**6) 
+                  + r"$\mu m$" +", I = " + "{}".format(self.i_current * 10**3)
+                  + r"$mA$" + r", $\phi_{beam}$ = 10^" + "{:.2f}".format(
+                  np.log10(self.phi_beam)))
+        plt.grid(True)
+        # get existing handles and labels
+        handles, labels = plt.gca().get_legend_handles_labels()
+        plt.legend(handles, labels, shadow=True)
+        
+        
+        format_im = 'png' #'pdf' or png
+        dpi = 300
+        plt.savefig(filename + '.{}'.format(format_im),
+                    format=format_im, dpi=dpi)
+        ax1.cla()
+        return
 
     def plot_R_over_t(self, filename="plots/R_over_t"):
         # Plot Resistance over time
@@ -807,7 +847,7 @@ def pressure_chamber(phi_beam, crack_eff):
     #     )
 
     #     ax.set_ylabel("Temperature [°C]")
-    #     ax.set_xlabel(r"wire positon [mm]")
+    #     ax.set_xlabel(r"Wire positon [mm]")
     #     ax.set_title(
     #         r"$d_{wire}$ = "
     #         + "{}".format(self.d_wire * 10**6)
