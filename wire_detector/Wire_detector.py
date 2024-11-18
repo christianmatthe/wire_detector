@@ -583,7 +583,7 @@ class Wire:
                  + "R = {:.3f}".format(R_arr[1]) + r"$\Omega$")
                  
         ax1.set_ylabel("Temperature [°C]")
-        ax1.set_xlabel(r"Wire positon [mm]")
+        ax1.set_xlabel(r"Position Along Wire [mm]")
         plt.title(r"$d_{wire}$ = " + "{}".format(self.d_wire * 10**6) 
                   + r"$\mu m$" +", I = " + "{}".format(self.i_current * 10**3)
                   + r"$mA$" + r", $\phi_{beam}$ = 10^" + "{:.2f}".format(
@@ -630,7 +630,7 @@ class Wire:
 
                  
         ax1.set_ylabel("Temperature [°C]")
-        ax1.set_xlabel(r"Wire positon [mm]")
+        ax1.set_xlabel(r"Position Along Wire [mm]")
         # plt.title(r"$d_{wire}$ = " + "{}".format(self.d_wire * 10**6) 
         #           + r"$\mu m$" +", I = " + "{}".format(self.i_current * 10**3)
         #           + r"$mA$" + r", $\phi_{beam}$ = 10^" + "{:.2f}".format(
@@ -723,12 +723,12 @@ class Wire:
         ax1.plot(x_lst, f_beam_gas_arr, "-", label=r"$f_{beam \,gas}$")
         ax1.plot(x_lst, f_bb_arr, "-", label=r"$f_{bb}$")
         ax1.plot(x_lst, f_background_gas_arr, linestyle = (0, (1, 1))
-                 , label=r"$f_{backgr. \, gas}$")
+                 , label=r"$f_{bkgd \, gas}$")
         # ax1.plot(x_lst, f_laser_arr, "-"
         #          , label=r"$f_{laser}$")
 
         ax1.set_ylabel("Heat Flow [W/m]", fontsize = 16)
-        ax1.set_xlabel(r"Wire positon [mm]", fontsize = 16)
+        ax1.set_xlabel(r"Position Along Wire [mm]", fontsize = 16)
         ax1.tick_params(axis='both', which='major', labelsize=12)
 
         #change line width after the fact
@@ -850,7 +850,7 @@ def pressure_chamber(phi_beam, crack_eff):
     #     )
 
     #     ax.set_ylabel("Temperature [°C]")
-    #     ax.set_xlabel(r"Wire positon [mm]")
+    #     ax.set_xlabel(r"Position Along Wire [mm]")
     #     ax.set_title(
     #         r"$d_{wire}$ = "
     #         + "{}".format(self.d_wire * 10**6)
@@ -944,11 +944,11 @@ def pressure_chamber(phi_beam, crack_eff):
     #     ax.plot(x_lst, f_beam_arr, "-", label=r"$F_{rec}$")
     #     ax.plot(x_lst, f_beam_gas_arr, "-", label=r"$F_{beam \,gas}$")
     #     ax.plot(x_lst, f_bb_arr, "-", label=r"$F_{bb\, cracker}$")
-    #     ax.plot(x_lst, f_background_gas_arr, linestyle = (0, (1, 1)), label=r"$-F_{backgr. \, gas}$")
+    #     ax.plot(x_lst, f_background_gas_arr, linestyle = (0, (1, 1)), label=r"$-F_{bkgd \, gas}$")
     #     # ax.plot(x_lst, f_laser_arr, "-", label=r"$F_{laser}$")
 
     #     ax.set_ylabel("Heat Flow [W/m]", fontsize=16)
-    #     ax.set_xlabel(r"Wire positon [mm]", fontsize=16)
+    #     ax.set_xlabel(r"Position Along Wire [mm]", fontsize=16)
     #     ax.tick_params(axis="both", which="major", labelsize=12)
     #     ax.grid(True)
     #     ax.legend(shadow=True)
