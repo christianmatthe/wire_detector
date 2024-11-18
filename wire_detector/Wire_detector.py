@@ -771,7 +771,7 @@ class Wire:
             #    )
             #Right Side Legend
             l1 = ax1.legend([h[i] for i in sources], [l[i] for i in sources],
-               #shadow = True,
+               shadow = True,
                #framealpha = 0.5,
                loc = "upper left",
                bbox_to_anchor=(1, 1),
@@ -782,7 +782,7 @@ class Wire:
                )
             plt.gca().add_artist(l1)
             ax1.legend([h[i] for i in sinks], [l[i] for i in sinks],
-               #shadow = True,
+               shadow = True,
                #framealpha = 0.5,
                loc = "upper left",
                bbox_to_anchor=(1, 0.60),
