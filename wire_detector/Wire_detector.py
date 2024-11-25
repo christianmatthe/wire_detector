@@ -551,10 +551,12 @@ class Wire:
         return U
 
     def integrate_f(self, f_func):
-        lst = [f_func(j) for j in range(self.n_wire_elements)]
-        arr = np.array(lst)
-        # Calculate total power along wire
-        power = np.sum(arr * self.l_segment)
+        # lst = [f_func(j) for j in range(self.n_wire_elements)]
+        # arr = np.array(lst)
+        # # Calculate total power along wire
+        # power = np.sum(arr * self.l_segment)
+        #update to match  new array based calculations
+        power = np.sum(f_func() * self.l_segment)
         return power
 
     def plot_signal(self, filename="plots/signal_plot"):
