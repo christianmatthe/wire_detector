@@ -622,7 +622,7 @@ class Wire:
             R_arr[i] = self.resistance_total()
         
 
-        ax1.plot(x_lst, T_lst[0] - 273.15, "-", label=r"T(x) in equilibrium, " 
+        ax1.plot(x_lst, T_lst[0] - 273.15, "-", label=r"T(x) in equilibrium" 
                  #+ "R = {:.3f}".format(R_arr[0]) + r"$\Omega$"
                  ,
                  linewidth = 3
