@@ -640,7 +640,7 @@ class Wire:
         handles, labels = plt.gca().get_legend_handles_labels()
         plt.legend(handles, labels, shadow=True)
         
-        
+        plt.tight_layout()
         format_im = 'png' #'pdf' or png
         dpi = 300
         plt.savefig(filename + '.{}'.format(format_im),
