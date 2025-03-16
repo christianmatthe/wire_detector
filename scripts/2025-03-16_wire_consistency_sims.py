@@ -47,7 +47,7 @@ for i_current in i_current_list:
             wire = wire_no_beam
 
             # Run the Simulation
-            t_mult = 2
+            t_mult = 20
             n_steps = 20000 * t_mult
             record_steps = 1000 
             time_step = 0.001 / t_mult
