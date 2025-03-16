@@ -522,6 +522,8 @@ class Wire:
         else:
             self.T_distribution = self.T_base
 
+        # Do initial steps at higher resolution
+
         for i in range(n_steps + 1):
             if i in range(0, n_steps + 1, (n_steps // record_steps)):
                 self.record_dict["T_distribution"][
@@ -530,7 +532,13 @@ class Wire:
                 self.record_dict["time"][
                     i // ((n_steps // record_steps))
                 ] = self.simulation_time
-            self.simulation_step(time_step=time_step)
+            # Do initial steps at higher resolution
+            if i < (n_steps // record_steps):
+                n_substeps = 20
+                for j in range(n_substeps):
+                    self.simulation_step(time_step=(time_step/n_substeps))
+            else:
+                self.simulation_step(time_step=time_step)
 
     def save(self, filename: str) -> None:
         """ Save this object as pickled file. """

@@ -107,10 +107,9 @@ if True:
         run_name = "lw_{}_i_{}".format(2.7,i_current)
         wire = wire.load(top_dir + "0.02mbar_air_em_{}\\".format(emissivity) 
                          + "results\\" + run_name)
+        #To make loaded old simultion files we must add a k_heat_cond_function
+        wire.gen_k_heat_cond_function()
         for n_func,func in enumerate(func_list):
-            print("getattr(wire, func)",getattr(wire, func))
-            print("getattr(wire, func)(50)",getattr(wire, func)(i=50))
-            print("wire.n_wire_elements",wire.n_wire_elements)
             power = wire.integrate_f(getattr(wire, func))
             power_arr_full[n_func, n_i] = power
             resistance = wire.resistance_total()
@@ -451,10 +450,18 @@ def fit_mismatch(data_frame, out_dir,
     perr = np.sqrt(np.diag(pcov))
     print("popt: ", popt)
     print("perr: ", perr)
-    print("emissivity_fit: ", popt[1])
+    print("emissivity_fit: ", popt[1], "pm", perr[1] )
     pressure = data_frame["Pressure (mbar)"].values.tolist()[0]
+    print("pressure:", pressure)
     print("pressure_factor: ", popt[2] * (0.02/pressure), "pm",
           perr[2] * (0.02/pressure) )
+    print("pressure_factor_mod: ", (np.sqrt(3)/5)*popt[2] * (0.02/pressure),
+           "pm",
+         (np.sqrt(3)/5)*perr[2] * (0.02/pressure) )
+    print("pressure_factor_mod_2: ", 
+          np.sqrt(3)/(5*2/(1+1/np.sqrt(3)))*popt[2] * (0.02/pressure),
+           "pm",
+         np.sqrt(3)/(5*2/(1+1/np.sqrt(3)))*perr[2] * (0.02/pressure) )
     T_arr = np.array(T_list)
     T_space = np.linspace(np.ndarray.min(T_arr), 
                           np.ndarray.max(T_arr), num = 100)
@@ -867,17 +874,18 @@ data_frame_baked_400 = data_frame[168:218]
 #                     y_lim_res=[-0.02,0.02] )
 
 test_run_name = "0.04mbar_baked_400"
+print(test_run_name)
 out_dir = plot_dir + test_run_name + os.sep
 df = data_frame_baked_400 
-# plot_R_vs_I_4wire_err(df, out_dir)
-# plot_P_vs_T(df, out_dir)
-# plot_P_vs_T_synth(df, out_dir)
+plot_R_vs_I_4wire_err(df, out_dir)
+plot_P_vs_T(df, out_dir)
+plot_P_vs_T_synth(df, out_dir)
 
-# plot_compare_to_sim(df, out_dir, y_lim_res=[-0.05,0.30])
-# plot_compare_to_sim(df, out_dir,
-#                     x_lim=[0,150],
-#                     y_lim=[-0.1,0.6],
-#                     y_lim_res=[-0.10,0.10] )
+plot_compare_to_sim(df, out_dir, y_lim_res=[-0.05,0.30])
+plot_compare_to_sim(df, out_dir,
+                    x_lim=[0,150],
+                    y_lim=[-0.1,0.6],
+                    y_lim_res=[-0.10,0.10] )
 fit_mismatch(df, out_dir)
 
 ################
@@ -886,6 +894,7 @@ file = file_dir + '2021-06-07_wire_3_post_300C_bakeout_fill.csv'
 data_frame = pd.read_csv(file)
 df = data_frame[6:44]
 test_run_name = "wire_3_post_bakeout"
+print(test_run_name)
 out_dir = plot_dir + test_run_name + os.sep
 plot_P_vs_T_synth(df, out_dir)
 
@@ -901,6 +910,7 @@ df = data_frame[138:212]
 # df = df_pre.append(df, ignore_index=True)
 #print(df)
 test_run_name = "wire_3_post_bakeout_1150mV"
+print(test_run_name)
 out_dir = plot_dir + test_run_name + os.sep
 plot_P_vs_T_synth(df, out_dir)
 
