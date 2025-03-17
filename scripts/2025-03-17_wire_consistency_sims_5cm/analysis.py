@@ -22,9 +22,16 @@ heat_flow_dir = top_dir + "heat_flow/"
 d = 5
 i_current = 1
 # n_seg_lst = [10,20,50,100,200]
-n_seg_lst = [6,10,20,30, 40, 50,60, 80, 100, 120, 140, 160, 180, 200, 220, 240,
-             400
-             ]
+# n_seg_lst = [6,10,20,30, 40, 50,60, 80, 100, 120, 140, 160, 180, 200, 220,
+#                240]
+n_seg_lst = [6,10,20,30, 40, 50,60, 80, 100, 120, 140, 160, 180, 200, 220,
+               240,
+               #400,
+               1000
+               ]
+
+# n_seg_lst = [6,10,20,30, 40, 50,60, 80, 100, 120, 140, 160, 180, 200]
+# # n_seg_lst = [6,10,20,30, 40, 50,60, 80, 100, 120, 140]
 
 # Initialize Arrays
 U_arr = np.zeros(len(n_seg_lst))
@@ -33,6 +40,7 @@ T_avg_arr = np.zeros(len(n_seg_lst))
 signal_arr = np.zeros(len(n_seg_lst))
 
 R_wire_arr = np.zeros(len(n_seg_lst))
+dR_wire_arr = np.zeros(len(n_seg_lst))
 l_seg_arr = np.zeros(len(n_seg_lst))
     
 
@@ -54,10 +62,13 @@ for n, n_seg in enumerate(n_seg_lst):
     # T_avg = T_avg_arr[n_d, n_p] = np.average(
     #     wire.record_dict["T_distribution"][-1])
     
+    R0_wire = wire.resistance_total(wire.record_dict["T_distribution"][0])
     R_wire = wire.resistance_total(wire.record_dict["T_distribution"][-1])
 
     R_wire_arr[n] = R_wire
     l_seg_arr[n] = wire.l_segment
+    dR_wire_arr[n] = R_wire - R0_wire
+
 
 if True:
     # Plot R_wire vs n_seg
@@ -141,8 +152,6 @@ if True:
     ax1.cla()
     ax1.cla()
 
-
-
 if True:
     # Plot R_wire vs n_seg
 
@@ -178,8 +187,66 @@ if True:
     plt.savefig(plot_dir + "R_prop_vs_lseg_loglog".format() 
                 + '.{}'.format(format_im),
                 format=format_im, dpi=dpi)
+    # With "fit"
+    ax1.plot(l_seg_arr * 10**3,
+              (R_wire_arr[0] - R_wire_arr[-1]) * (
+                  l_seg_arr**2/l_seg_arr[0]**2)/R_wire_arr[-1], "r-"
+              )
+    plt.savefig(plot_dir + "R_prop_vs_lseg_loglog_trend".format() 
+            + '.{}'.format(format_im),
+            format=format_im, dpi=dpi)
+
+
     ax1.cla()
     ax1.cla()
 
+if True:
+    # Plot R_wire vs n_seg
 
+    fig = plt.figure(0, figsize=(8,6.5))
+    ax1=plt.gca()
+
+    ax1.plot(l_seg_arr * 10**3, (dR_wire_arr - dR_wire_arr[-1])/dR_wire_arr[-1]
+              , ".", 
+             ms = 10,
+                # label="{}".format(d) 
+                # + r"$\mu m$"
+                )
+    ax1.set_ylabel(r"$\Delta R_{diff}$ [$\Omega$ / $\Omega$ ]")
+    ax1.set_xlabel(r"$l_{\rm seg} [\rm mm]$ ")
+    plt.grid(True)
+    #plt.legend(shadow=True)
+    plt.tight_layout()
+
+
+    format_im = 'png' #'pdf' or png
+    dpi = 300
+    plt.savefig(plot_dir + "dR_prop_vs_lseg".format() 
+                + '.{}'.format(format_im),
+                format=format_im, dpi=dpi)
+    
+
+    ax1.set_yscale("log")
+    plt.savefig(plot_dir + "dR_prop_vs_lseg_log".format() 
+                + '.{}'.format(format_im),
+                format=format_im, dpi=dpi)
+    
+    ax1.set_yscale("log")
+    ax1.set_xscale("log")
+    plt.savefig(plot_dir + "dR_prop_vs_lseg_loglog".format() 
+                + '.{}'.format(format_im),
+                format=format_im, dpi=dpi)
+    # With "fit"
+    ax1.plot(l_seg_arr * 10**3,
+              (dR_wire_arr[0] - dR_wire_arr[-1]) * (
+                  l_seg_arr**2/l_seg_arr[0]**2)/dR_wire_arr[-1], "r-"
+              )
+    ax1.set_ylabel(r"$\Delta R_{diff} / R_{diff}$ [$\Omega$ / $\Omega$ ]")
+    plt.savefig(plot_dir + "dR_prop_vs_lseg_loglog_trend".format() 
+            + '.{}'.format(format_im),
+            format=format_im, dpi=dpi)
+
+
+    ax1.cla()
+    ax1.cla()
 

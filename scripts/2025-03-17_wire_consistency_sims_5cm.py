@@ -12,7 +12,7 @@ from time import time
 start_time = time()
 # Simulate different wire thicknesses with base voltage matched using current
 # over range of beam Flat strengths
-top_dir = "2025-03-16_wire_consistency_sims/"
+top_dir = "2025-03-17_wire_consistency_sims_5cm/"
 os.makedirs(top_dir, exist_ok=True)
 results_dir = top_dir + "results/"
 plot_dir = top_dir + "plots/"
@@ -28,9 +28,13 @@ A_beam = np.pi * (l_beam/2)**2
 # n_seg_lst = [10,20,50,100,200]
 
 # n_seg_lst = [6,10,20,30, 40, 50,60, 80, 100, 120, 140, 160, 180, 200]
-#n_seg_lst = [220,240]
+# n_seg_lst = [220,240]
 
-n_seg_lst = [400]
+# n_seg_lst = [400]
+
+n_seg_lst = [1000]
+
+# n_seg_lst = [100]
 
 for i_current in i_current_list:
     for d in d_wire_list:
@@ -40,7 +44,7 @@ for i_current in i_current_list:
                 n_wire_elements = n_seg, 
                 #k_heat_conductivity = 174,
                 i_current = (d/5)**2 * i_current * 10**-3, d_wire = d * 10**-6,
-                emissivity = 0.3, l_wire=2*10**-2,
+                emissivity = 0.3, l_wire=5.45*10**-2,
                 beam_shape="Flat", l_beam = l_beam,
                 ###
                 phi_beam=0, T_base=None
