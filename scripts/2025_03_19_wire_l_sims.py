@@ -18,7 +18,10 @@ d = 5
 i_current = 1
 # exp_list = np.linspace(14,18,num = 5)  # later normalized to per cm**2 
 # exp_list = np.linspace(16,17,num = 1)  # later normalized to per cm**2 
-exp_list = np.linspace(17,18,num = 1)  # later normalized to per cm**2 
+# exp_list = np.linspace(17,18,num = 1)  # later normalized to per cm**2 
+exp_list = [16, 17, 0]
+# exp_list = [0]
+# exp_list = [1]
 l_beam_list = [10, 1.6]  # in cm
 # l_wire_list = [#5,4,3,
 #                 #2.1,2.2,2.3,2.4,
@@ -41,6 +44,9 @@ l_beam_list = [10, 1.6]  # in cm
 l_wire_list = ([0.1 * i for i in range(2,20)] 
              + [2 + 0.2 * i for i in range(0,26)]
                )
+# #Choose every 5th for faster running
+# l_wire_list = l_wire_list[::5]
+# l_wire_list = [8]
 l_wire_list = np.round(np.array(l_wire_list),decimals=1)
 print("l_wire_list", l_wire_list)
 min_segment_length = 0.2*10**-3
@@ -61,8 +67,10 @@ for l_wire in l_wire_list:
         i_current = (d/5)**2 * i_current * 10**-3, d_wire = d * 10**-6,
         emissivity = 0.3, l_wire=l_wire*10**-2,
         ###
-        phi_beam=0, T_base=None
+        phi_beam=0, T_base=None,
         ###
+        #Remove f_bb to counter l_beam dependency of f_bb
+        A_cracker = 0, 
         ) 
 
     # Run the Simulation
@@ -78,6 +86,7 @@ for l_wire in l_wire_list:
     for l_beam in l_beam_list:
         A_beam = np.pi * ((l_beam*10**-2)/2)**2
         for phi_exp in exp_list:
+            phi = (A_beam/ 10**-4) * 10**phi_exp, # Normalized to cm**2
             time_before = time()
             # simulate with beam on (Beam is wider than the wire length)
             wire = Wire(
@@ -86,7 +95,9 @@ for l_wire in l_wire_list:
                 emissivity = 0.3, l_wire=l_wire*10**-2,
                 beam_shape="Flat", l_beam = l_beam* 10**-2, 
                 phi_beam= (A_beam/ 10**-4) * 10**phi_exp, # Normalized to cm**2
-                T_base=wire_no_beam.record_dict["T_distribution"][-1]
+                T_base=wire_no_beam.record_dict["T_distribution"][-1],
+                #Remove f_bb to counter l_beam dependency of f_bb
+                A_cracker = 0, 
                 )
 
             wire.simulate(n_steps=n_steps, record_steps=record_steps,

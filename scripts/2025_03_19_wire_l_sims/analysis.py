@@ -19,7 +19,8 @@ heat_flow_dir = top_dir + "heat_flow/"
 #d_wire_list = [5]
 #i_current_list =  [1]
 # exp_list = np.linspace(16,17,num = 1)   # later normalized to per cm**2
-exp_list = np.linspace(17,18,num = 1)   # later normalized to per cm**2
+# exp_list = np.linspace(17,18,num = 1)   # later normalized to per cm**2
+exp_list = np.array([0,16,17])
 l_beam_list = [10, 1.6]
 
 l_wire_list = ([0.1 * i for i in range(2,20)] 
