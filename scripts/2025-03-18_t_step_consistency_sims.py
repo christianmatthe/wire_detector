@@ -12,7 +12,7 @@ from time import time
 start_time = time()
 # Simulate different wire thicknesses with base voltage matched using current
 # over range of beam Flat strengths
-top_dir = "2025-03-16_wire_consistency_sims/"
+top_dir = "2025-03-18_t_step_consistency_sims/"
 os.makedirs(top_dir, exist_ok=True)
 results_dir = top_dir + "results/"
 plot_dir = top_dir + "plots/"
@@ -33,14 +33,15 @@ A_beam = np.pi * (l_beam/2)**2
 # n_seg_lst = [400]
 
 # n_seg_lst = [1000]
-n_seg_lst = [100]
+# n_seg_lst = [100]
+t_mult_list = [1, 2, 4, 8, 16, 32, 64]
 
 for i_current in i_current_list:
     for d in d_wire_list:
-        for n_seg in n_seg_lst:
+        for t_mult in t_mult_list:
             # simulate wire base temperature with beam off
             wire_no_beam = Wire(
-                n_wire_elements = n_seg, 
+                n_wire_elements = 50, 
                 #k_heat_conductivity = 174,
                 i_current = (d/5)**2 * i_current * 10**-3, d_wire = d * 10**-6,
                 emissivity = 0.3, l_wire=2*10**-2,
@@ -52,8 +53,8 @@ for i_current in i_current_list:
             wire = wire_no_beam
 
             # Run the Simulation
-            t_mult = 4
-            n_steps = 20000 * t_mult
+            t_mult = t_mult
+            n_steps = int(20000 * t_mult)
             record_steps = 2000 
             #record_steps = 1000 
             time_step = 0.001 / t_mult
@@ -79,7 +80,8 @@ for i_current in i_current_list:
         #                 time_step=time_step)
 
 
-            run_name = "d_{}_i_{}_nseg_{}".format(d, i_current, n_seg)
+            run_name = "d_{}_i_{}_tstep_{}".format(d, i_current, 
+                                                     int(time_step*10**6))
             os.makedirs(plot_dir + "signal/", exist_ok=True)
             os.makedirs(plot_dir + "R_over_t/", exist_ok=True)
             os.makedirs(plot_dir + "heat_flow/", exist_ok=True)

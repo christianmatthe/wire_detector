@@ -331,7 +331,10 @@ class Wire:
             q = mask # / sum(mask) # i think not dividing is correct (Chr)
             # calculate fraction area which prijected wire makes up
             # Area wire/area beam
-            q *= (self.d_wire * self.l_beam) / (np.pi * (self.l_beam/2)**2)
+            # q *= (self.d_wire * self.l_beam) / (np.pi * (self.l_beam/2)**2)
+            # Multiplication with length along the wire (l_beam in this case
+            #  happpens in deltaT)
+            q *= (self.d_wire) / (np.pi * (self.l_beam/2)**2)
 
         elif self.beam_shape == "Gaussian":
             q = (
@@ -486,11 +489,14 @@ class Wire:
             * self.l_segment
             * time_step
         ) / (
-            self.density * self.A_cross_section * self.l_segment * self.c_specific_heat
+            self.density * self.A_cross_section * self.l_segment 
+            * self.c_specific_heat
         )
         if not np.all(np.isfinite(delta_T)):
+            print("self.simulation_time = ", self.simulation_time)
+            print("delta_T = ", delta_T )
             raise ValueError(
-                "The temerature distribution diverges. Use smaller time steps."
+                "The temperature distribution diverges. Use smaller time steps."
             )
 
         return delta_T
@@ -608,7 +614,7 @@ class Wire:
                       + " = {:.2f}".format(U_delta *10 **3) + " mV, ")
         plt.legend(handles, labels, shadow=True)
         
-        
+        plt.tight_layout()
         format_im = 'png' #'pdf' or png
         dpi = 300
         plt.savefig(filename + '.{}'.format(format_im),
