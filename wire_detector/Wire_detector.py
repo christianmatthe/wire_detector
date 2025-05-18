@@ -118,12 +118,13 @@ class Wire:
         T_molecules=293.15,
         pressure=0,
         A_cracker=np.pi * (0.5 * 10**-3) ** 2,  # 1mm diameter disk
-        dist_cracker_wire=100 * 10**-3,
+        dist_cracker_wire=100 * 10**-3,# Note value duplicates y0
         bodge=False,
         p_laser=0,
         m_molecular_gas=2 * 1.674 * 10**-27,
         # for j Tschersich:
         y0 = 35.17 * 10**-3, # m, wire to HABS distance in CAD)
+                            # Note value duplicates dist_cracker_wire
         l_eff = 4.0,
     ):
         self.n_wire_elements = n_wire_elements
@@ -351,7 +352,22 @@ class Wire:
 
         elif self.beam_shape == "Point":
             mask = np.zeros(shape)
-            mask[np.abs((self.x_offset_beam - x_positions)) < (self.l_segment / 2)] = 1
+            mask[np.abs((self.x_offset_beam - x_positions)) < (
+                self.l_segment / 2)] = 1 / self.l_segment
+            q = mask
+
+        elif self.beam_shape == "CenterPoint":
+            mask = np.zeros(shape)
+            #Celect central point, normalize by segmment length
+            # Note with even segment numbers this  will be very slightly off 
+            # center
+            mask[self.n_wire_elements // 2] = 1 / self.l_segment
+            q = mask
+
+        elif self.beam_shape == "EveryPoint":
+            # Put the same total heat as "point" but spread over all
+            # wire segments
+            mask = np.full(shape, 1/self.n_wire_elements) / self.l_segment
             q = mask
 
         elif self.beam_shape == "Tschersich":

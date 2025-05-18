@@ -11,6 +11,14 @@ sys.path.append(top_dir + "..\\")
 from Wire_detector import Wire
 from time import time
 
+#plot Options
+import matplotlib as mpl
+font = {#'family' : 'normal','weight' : 'bold',
+        'size'   : 16
+        #,'serif':['Helvetica']
+        }
+mpl.rc('font', **font)
+
 plot_dir = top_dir + "analysis/"
 os.makedirs(plot_dir, exist_ok=True)
 heat_flow_dir = top_dir + "heat_flow/"
@@ -121,7 +129,7 @@ for n_lb, l_beam in enumerate(l_beam_list):
             ax1.loglog(phi_list, signal_arr[n_lw], "-", 
                        label="{}".format(l_wire) 
                        + r"$cm$", basex=10)
-        ax1.set_ylabel(r"relative signal")
+        ax1.set_ylabel(r"Relative Signal $\Delta R / R_{\rm initial}$")
         ax1.set_xlabel(r"$\Phi_{beam}$ [Atoms/$cm^2 s$]")
         plt.grid(True)
         plt.legend(shadow=True, title = "Wire Length")
@@ -141,10 +149,10 @@ if True:
 
         for n_lb, l_beam in enumerate(l_beam_list):
             ax1.plot(l_wire_list, signal_arr_full[n_lb, :, n_p],
-                     "-", label="{}".format(l_beam) + r"$cm$")
+                     "-", label="{}".format(l_beam) + r"$\, \rm cm$")
 
-        ax1.set_ylabel(r"relative signal")
-        ax1.set_xlabel(r"wire length [cm]")
+        ax1.set_ylabel(r"Relative Signal $\Delta R / R_{\rm initial}$")
+        ax1.set_xlabel(r"Wire Length [cm]")
         plt.grid(True)
         plt.legend(shadow=True, title = "Beamspot Diameter")
 
@@ -162,10 +170,10 @@ if True:
 
         for n_lb, l_beam in enumerate(l_beam_list):
             ax1.plot(l_wire_list, U_arr_full[n_lb, :, n_p]*1000,
-                     "-", label="{}".format(l_beam) + r"$cm$")
+                     "-", label="{}".format(l_beam) + r"$\, \rm cm$")
 
         ax1.set_ylabel(r"$\Delta U$ [mV]")
-        ax1.set_xlabel(r"wire length [cm]")
+        ax1.set_xlabel(r"Wire Length [cm]")
         plt.grid(True)
         plt.legend(shadow=True, title = "Beamspot Diameter")
 

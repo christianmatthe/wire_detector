@@ -81,7 +81,7 @@ for emissivity in emissivity_list:
                 a_temperature_coefficient=3.92 * 10**-3,
                 k_heat_conductivity= 71.6,
                 c_specific_heat = 133,
-                density = 21450,
+                
 
 
                 pressure=pressure * 10**-3*10**5,

@@ -1,0 +1,9 @@
+README.md
+setup.py
+Wire_detector/Wire_detector.py
+Wire_detector/__init__.py
+Wire_detector.egg-info/PKG-INFO
+Wire_detector.egg-info/SOURCES.txt
+Wire_detector.egg-info/dependency_links.txt
+Wire_detector.egg-info/not-zip-safe
+Wire_detector.egg-info/top_level.txt
