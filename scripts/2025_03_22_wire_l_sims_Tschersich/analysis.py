@@ -8,7 +8,7 @@ import sys
 
 top_dir = os.path.dirname(os.path.abspath(__file__)) + "\\"
 sys.path.append(top_dir + "..\\")
-from Wire_detector import Wire
+from wire_detector import Wire
 from time import time
 
 plot_dir = top_dir + "analysis/"
@@ -34,7 +34,7 @@ l_wire_list = ([0.1 * i for i in range(2,20)]
 # #Choose every 5th for faster running
 # l_wire_list = l_wire_list[::5]
 l_wire_list = np.round(np.array(l_wire_list),decimals=1)
-
+print(l_wire_list)
 
 phi_exp_list = np.linspace(17,18,num = 1) 
 beamshape_list = ["Tschersich"]
@@ -60,7 +60,7 @@ for n_bs, beamshape in enumerate(beamshape_list):
                 wire = wire.load(top_dir + "results\\" + run_name)
             except:
                 run_name = "bs_{}_lw_{}_phi_{}_i_{}".format(
-                    beamshape, int(l_wire), phi_exp,i_current)
+                    beamshape, l_wire, phi_exp,i_current)
                 #TODO Include enumerates, output plots for every i_current
                 wire = Wire()
                 wire = wire.load(top_dir + "results\\" + run_name)
@@ -98,10 +98,10 @@ if True:
         fig = plt.figure(0, figsize=(8,6.5))
         ax1=plt.gca()
 
-        label_list = ["l_eff = 4"]
+        label_list = [r"$l_{\rm eff} = 4$"]
         for n_bs, beamshape in enumerate(beamshape_list):
             ax1.plot(l_wire_list, signal_arr_full[n_bs, :, n_p],
-                     "-", label=r"$10^{17}$ atoms/($\rm cm^2 s$),"
+                     "-", label=r"$10^{17}$ atoms/($\rm s$),"
                                 + "\n {}".format(
                          #phi_exp,
                                                 label_list[n_bs]))

@@ -4,7 +4,7 @@ from matplotlib.animation import FuncAnimation
 import matplotlib.patches as mpatches
 import os
 import dill
-from Wire_detector import Wire
+from wire_detector import Wire
 from time import time
 
 start_time = time()
