@@ -37,6 +37,7 @@ for i_current in i_current_list:
             #TODO Include enumerates, output plots for every i_current
             wire = Wire()
             wire = wire.load(top_dir + "results\\" + run_name)
+            print("alive. loading: ", "n_d", n_d, "d", d, "n_p", n_p)
             l_beam = wire.l_beam
 
             # U_beam_off = wire.U_wire(0)
@@ -358,12 +359,13 @@ for i_current in i_current_list:
             ax1=plt.gca()
 
             ax1.loglog(d_wire_list, sig_list, "o", 
-                        label="phi {}".format(exp_list[i_phi]) 
+                        #label="phi {}".format(exp_list[i_phi]) 
+                        label="simulation".format(exp_list[i_phi])
                         , base=10)
             ax1.loglog(d_wire_list, sig_list[-1] * (
                         d_wire_list[-1]/d_wire_list),
                         "-", 
-                        label="1/x".format(exp_list[i_phi]) 
+                        label= r"$const./d_{\rm wire}$"
                         , base=10)
             ax1.set_ylabel(r"Relative Signal $\Delta R / R_{\rm initial}$")
             ax1.set_xlabel(r"Wire Diameter [$\rm \mu m$]")

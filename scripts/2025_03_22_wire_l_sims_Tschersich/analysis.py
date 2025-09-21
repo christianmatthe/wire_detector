@@ -8,7 +8,7 @@ import sys
 
 top_dir = os.path.dirname(os.path.abspath(__file__)) + "\\"
 sys.path.append(top_dir + "..\\")
-from wire_detector import Wire
+from Wire_detector import Wire
 from time import time
 
 plot_dir = top_dir + "analysis/"
@@ -101,7 +101,7 @@ if True:
         label_list = [r"$l_{\rm eff} = 4$"]
         for n_bs, beamshape in enumerate(beamshape_list):
             ax1.plot(l_wire_list, signal_arr_full[n_bs, :, n_p],
-                     "-", label=r"$10^{17}$ atoms/($\rm s$),"
+                     "-", label=r"$\Phi_{\rm at} = 10^{17} \rm atoms/ s$,"
                                 + "\n {}".format(
                          #phi_exp,
                                                 label_list[n_bs]))
@@ -109,7 +109,7 @@ if True:
         ax1.set_ylabel(r"Relative Signal $\Delta R / R_{\rm initial}$")
         ax1.set_xlabel(r"Wire Length [cm]")
         plt.grid(True)
-        plt.legend(shadow=True, title = "Power Input")
+        plt.legend(shadow=True, title = "Beam Parameters")
 
         format_im = 'png' #'pdf' or png
         dpi = 300

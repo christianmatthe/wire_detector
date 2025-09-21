@@ -79,7 +79,8 @@ if __name__ == "__main__":
     data_frame_rigol = pd.read_csv(file_rigol)
 
     df_rigol = data_frame_rigol[6:62]
-    flux_limit_list_rigol =  make_flux_limit_list(df_rigol, Q_ierr_const= True)
+    flux_limit_list_rigol = np.array(make_flux_limit_list(df_rigol, 
+                                                    Q_ierr_const= True))
 
     top_dir = os.path.dirname(os.path.abspath(__file__)) + os.sep
     plot_dir = top_dir + "detection_threshold_keithley" + os.sep
@@ -96,14 +97,16 @@ if __name__ == "__main__":
                       / (R_list[i+1] - R_list[i-1]) 
                               for i in range(1,len(R_list)-1)]
     #print(dP_per_dR_list)
+    #convert to cm^2
     conv = 1e-4
     power_limit_list = [1e6*power_limit(R_err[i+1], dP_per_dR_list[i])
                        for i in range(len(dP_per_dR_list))]
     #print("power limit list: ", power_limit_list)
 
-    flow_limit_list = [flow_limit(R_err[i+1], dP_per_dR_list[i])
-                       for i in range(len(dP_per_dR_list))]
-    flux_limit_list = [flow / A_illuminated for flow in flow_limit_list]
+    flow_limit_list = np.array([flow_limit(R_err[i+1], dP_per_dR_list[i])
+                       for i in range(len(dP_per_dR_list))])
+    flux_limit_list = np.array([flow / A_illuminated 
+                                for flow in flow_limit_list])
     #flux_limit_plot = 1e-0 * np.array(flow_limit_list)
     #print(flux_limit_list)
     
@@ -112,12 +115,20 @@ if __name__ == "__main__":
         ax1=plt.gca()
         if i == "both":
             ax1.plot(df_rigol["I meas (mA)"].values.tolist()[1:-1],
-                flux_limit_list_rigol,
+                flux_limit_list_rigol * conv,
                 ".", color = "C0", label = "Rigol DP832")
-        ax1.plot(df["I meas (mA)"].values.tolist()[1:-1],flux_limit_list,
+        ax1.plot(df["I meas (mA)"].values.tolist()[1:-1],flux_limit_list * conv,
                 ".", color = "C1", label = "Keithley 2400")
 
-        ax1.set_ylabel(r"Flux detection Limit [Atoms per m$^2$ s]")
+        # Switch axes sides
+        ax1.yaxis.tick_right()
+        ax1.yaxis.set_label_position("right")
+        if conv == 1e-4:
+            ax1.set_ylabel(r"$\sigma_{\Phi_{\rm at}}$ "
+                + r"Flux Density Detection Limit [Atoms per $\rm cm^2 s$]")
+        elif conv ==1:
+            ax1.set_ylabel(r"$\sigma_{\Phi_{\rm at}}$ "
+                + r"Flux Density Detection Limit [Atoms per m$^2$ s]")
         ax1.set_xlabel(r"Current [mA]")
         # #print(np.asarray(df["T (°C)"].values.tolist()[1:-1]).astype(float))
         T_arr = np.asarray(df["T (°C)"].values.tolist()).astype(float)
@@ -130,7 +141,7 @@ if __name__ == "__main__":
         def flux_to_P(flux):
             joules_per_electronvolt = 1.60218e-19
             energy_per_atom = (4.75/2) * joules_per_electronvolt
-            return flux * A_illuminated * energy_per_atom * 1e6
+            return (flux/conv) * A_illuminated * energy_per_atom * 1e6
 
         def P_to_flux(P):
             joules_per_electronvolt = 1.60218e-19
@@ -154,13 +165,51 @@ if __name__ == "__main__":
                             )
             out  = f_int(x.astype(float))
             return out
-        secax = ax1.secondary_xaxis(-0.15, functions=(i_to_T, T_to_i))
-        secax.set_xlabel('Base Temperature [°C]')
+        
+        #Axes on same side
+        # secax = ax1.secondary_xaxis(-0.15, functions=(i_to_T, T_to_i))
+        # secax.set_xlabel('Base Temperature [°C]')
 
-        secax2 = ax1.secondary_yaxis(-0.15, functions=(flux_to_P, P_to_flux))
-        secax2.set_xlabel('Power [µW]')
+        # secax2 = ax1.secondary_yaxis(-0.15, functions=(flux_to_P, P_to_flux))
+        # secax2.set_xlabel('Power [µW]')
+        #secAx on  opposite side:
+        secax = ax1.secondary_xaxis(1, functions=(i_to_T, T_to_i))
+        secax.set_xlabel(r'Wire Operating Temperature $T_{\rm avg}$ [°C]')
 
-        plt.grid(True)
+        secax2 = ax1.secondary_yaxis(0, functions=(flux_to_P, P_to_flux))
+        secax2.set_ylabel(r'$\sigma_{P_{\rm meas}}$' 
+                          +' Resolution in Heating Power [µW]')
+        
+
+        # #HACK Set Gridlines manually
+        # xlim = ax1.get_xlim()
+        # for y in secax.get_yticks():
+        #     ax1.plot(xlim, (y, y),
+        #              lw=0.5, color = "grey")
+        # ax1.set_xlim(xlim)
+
+        # ylim = ax1.get_ylim()
+        # for x in ax1.get_xticks():
+        #     ax1.plot((x, x), ylim,  lw=0.5, color = "grey")
+        # secax.set_ylim(ylim)
+
+        #HACK Set Gridlines manually
+        # print(secax.get_yticks())
+        # for y in secax.get_yticks():
+        #HAck
+        xlim = ax1.get_xlim()
+        for y in np.array([0.01, 0.1, 1]):
+            ax1.axhline(P_to_flux(y)*conv, color="gray", zorder=-1, 
+                        linestyle="-", linewidth=0.5)
+
+        for x in ax1.get_xticks():
+            ax1.axvline(x, color="gray", zorder=-1, 
+                        linestyle="-", linewidth=0.5)
+            
+        ax1.set_xlim(xlim)
+
+
+        #plt.grid(True)
         # plt.legend(shadow=True, title = "Wire Length")
 
         format_im = 'png' #'pdf' or png
@@ -171,13 +220,13 @@ if __name__ == "__main__":
         if i == "keithley":
             plt.savefig(plot_dir + "flux_vs_current"
                         + '.{}'.format(format_im),
-                        format=format_im, dpi=dpi)
+                        format=format_im, dpi=dpi,  bbox_inches="tight")
         if i == "both":
             ax1.legend(title = "Power Supply:")
             ax1.set_yscale('log')
             plt.savefig(plot_dir + "flux_vs_current_both"
                         + '.{}'.format(format_im),
-                        format=format_im, dpi=dpi)
+                        format=format_im, dpi=dpi,  bbox_inches="tight")
         ax1.cla()
 
 

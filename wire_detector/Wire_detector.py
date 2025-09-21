@@ -99,6 +99,7 @@ class Wire:
         rho_specific_resistance=0.052 * 10**-6,
         i_current=1.0 * 10**-3,
         T_background=293.15,
+        T_board = None,
         emissivity=0.2,
         E_recombination=7.1511 * 10**-19,  # Joules
         # https://journals.aps.org/prl/pdf/10.1103/PhysRevLett.121.013001
@@ -135,6 +136,10 @@ class Wire:
         self.rho_specific_resistance = rho_specific_resistance
         self.i_current = i_current
         self.T_background = T_background
+        if T_board is None:
+            self.T_board = T_background
+        else:
+            self.T_board = T_board
         self.emissivity = emissivity
         self.E_recombination = E_recombination
         self.phi_beam = phi_beam
@@ -170,7 +175,8 @@ class Wire:
         self.gen_k_heat_cond_function()
 
         # Intial State of the Wire
-        self.T_distribution = np.ones(self.n_wire_elements) * self.T_background
+        self.T_distribution = (np.ones(self.n_wire_elements) 
+                               * self.T_board)
         self.simulation_time = 0
 
         # Initialize tschersich beam vars
@@ -292,8 +298,8 @@ class Wire:
         """
         shift_left = np.roll(self.T_distribution, 1)
         shift_right = np.roll(self.T_distribution, -1)
-        shift_left[0] = self.T_background
-        shift_right[-1] = self.T_background
+        shift_left[0] = self.T_board
+        shift_right[-1] = self.T_board
 
         # Difference of ith wire element with (i-1)th or (i+1)th element
         diff_left = shift_left - self.T_distribution
